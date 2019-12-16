@@ -821,8 +821,6 @@ class Db
         // bind Values
         foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
         {
-            Log::WRITE($oDTKeyValue, 'debug.log');
-
             $iPdoParam = 0;
             ('integer' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_INT : false;
             ('string' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR : false;
@@ -931,8 +929,6 @@ class Db
         {
             foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
             {
-                Log::WRITE($oDTKeyValue, 'debug.log');
-
                 $iPdoParam = 0;
                 ('integer' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_INT : false;
                 ('string' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR : false;
