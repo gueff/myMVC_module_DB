@@ -62,7 +62,7 @@ class Field
 		$this->sName = '';
 		$this->iLength = 0;
 		$this->bIsChangeable = true;
-		$this->oType = ;
+		$this->oType = null;
 		$this->sCharacter = '';
 		$this->sCollate = '';
 		$this->bNull = true;
