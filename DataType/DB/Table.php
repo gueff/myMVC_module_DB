@@ -26,7 +26,7 @@ class Table
 	public function __construct(array $aData = array())
 	{
 		$this->sName = '';
-		$this->aField = ;
+		$this->aField = null;
 
 		foreach ($aData as $sKey => $mValue)
 		{
