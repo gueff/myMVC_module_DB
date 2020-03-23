@@ -40,6 +40,16 @@ class Db
     protected $sTableName = '';
 
     /**
+     * @var string
+     */
+    protected $sCacheKeyTableName = '';
+
+    /**
+     * @var string
+     */
+    protected $sCacheValueTableName = '';
+
+    /**
      * @var array
      */
     protected $aFieldArrayComplete = array();
@@ -47,18 +57,18 @@ class Db
     /**
      * @var \DB\Model\DbPDO
      */
-	protected $oDbPDO;
+    protected $oDbPDO;
 
     /**
      * @var bool
      */
-	protected static $bCaching = true;
+    protected static $bCaching = true;
 
     /**
      * @see README.md
      * @var array
      */
-	protected $aConfig = array();
+    protected $aConfig = array();
 
     /**
      * These Fieldnames are reserved and may not be part of setup
@@ -67,8 +77,8 @@ class Db
      * an empty array to it: $oDb->setReservedFieldNameArray(array());
      * @var array
      */
-	protected $aReservedFieldName = array(
-	    'id',
+    protected $aReservedFieldName = array(
+        'id',
         'stampChange',
         'stampCreate'
     );
@@ -130,15 +140,16 @@ class Db
      * @param array $aAlterTable
      * @throws \ReflectionException
      */
-	public function __construct ($aFields = array(), $aDbConfig = array(), $aAlterTable = array())
-	{
+    public function __construct ($aFields = array(), $aDbConfig = array(), $aAlterTable = array())
+    {
         Log::WRITE(__METHOD__, self::createTableName() . '.log');
 
         $this->aFieldArrayComplete = $aFields;
         $this->aConfig = $aDbConfig;
-	    $this->sTableName = self::createTableName(get_class($this));
-        $sCacheKey = __CLASS__;
-        $sCacheValue = func_get_args();
+        $this->sTableName = self::createTableName(get_class($this));
+
+        $this->sCacheKeyTableName = __CLASS__ . '.' . $this->sTableName;
+        $this->sCacheValueTableName = func_get_args();
 
         // init DB
         $sRegistryKey = self::createTableName(__CLASS__) . '.DbPDO';
@@ -156,7 +167,7 @@ class Db
         $this->setCachingState();
         $this->setSqlLoggingState();
 
-        if ($sCacheValue !== \Cachix::getCache($sCacheKey))
+        if ($this->sCacheValueTableName !== \Cachix::getCache($this->sCacheKeyTableName))
         {
             (false === filter_var($this->checkIfTableExists ($this->sTableName), FILTER_VALIDATE_BOOLEAN)) ? $this->createTable($this->sTableName, $aFields, $aAlterTable) : false;
             $this->synchronizeFields();
@@ -164,13 +175,13 @@ class Db
             if (true === self::$bCaching)
             {
                 \Cachix::saveCache(
-                    $sCacheKey,
-                    $sCacheValue
+                    $this->sCacheKeyTableName,
+                    $this->sCacheValueTableName
                 );
             }
         }
 
-	}
+    }
 
     /**
      * Sets Caching state due to config
@@ -220,7 +231,7 @@ class Db
                 REFERENCES `" . $oDtDbForeign->get_sReferenceTable() . "` (`" . $oDtDbForeign->get_sReferenceKey() . "`)
                 " . $oDtDbForeign->get_sOnDelete() . " " . $oDtDbForeign->get_sOnUpdate() . ";";
 
-        $sCacheKey = __METHOD__;
+        $sCacheKey = __METHOD__ . '.' . $this->sTableName . '.' . md5(serialize($oDtDbForeign));
 
         // add to final, completed  field array
         if (false === in_array($oDtDbForeign->get_sForeignKey(), $this->aFieldArrayComplete))
@@ -342,29 +353,29 @@ class Db
      * @return bool
      * @throws \ReflectionException
      */
-	protected function checkIfTableExists ($sTable)
-	{
-		try
-		{						
-			// Select 1 from table_name will return false if the table does not exist.
-			$aResult = $this->oDbPDO->fetchAll ("DESCRIBE `" . $sTable . "`");
-		}
-		catch (\Exception $oException)
-		{		
-			Error::EXCEPTION($oException);
+    protected function checkIfTableExists ($sTable)
+    {
+        try
+        {
+            // Select 1 from table_name will return false if the table does not exist.
+            $aResult = $this->oDbPDO->fetchAll ("DESCRIBE `" . $sTable . "`");
+        }
+        catch (\Exception $oException)
+        {
+            Error::EXCEPTION($oException);
 
-			return false;
-		}
-		
-		if (empty($aResult))
-		{
-			return false;
-		}
+            return false;
+        }
 
-		return true;
-	}
+        if (empty($aResult))
+        {
+            return false;
+        }
 
-	/**
+        return true;
+    }
+
+    /**
      * Creates InnoDB Table
      * @example $aFields
      * array(
@@ -380,149 +391,116 @@ class Db
      * @return bool|false|\PDOStatement
      * @throws \ReflectionException
      */
-	protected function createTable ($sTable, $aFields, $aAlterTable = array())
-	{
+    protected function createTable ($sTable, $aFields, $aAlterTable = array())
+    {
         $mState = false;
 
         // drop, create, add id
-		$sSql = "
+        $sSql = "
             DROP TABLE IF EXISTS `" . $sTable . "`; 
             CREATE TABLE IF NOT EXISTS `" . $sTable . "` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
             ";
 
-		// iterate fields
-		foreach ($aFields as $sKey => $sValue)
-		{
-		    // skip these
-		    if (in_array($sKey, $this->aReservedFieldName))
+        // iterate fields
+        foreach ($aFields as $sKey => $sValue)
+        {
+            // skip these
+            if (in_array($sKey, $this->aReservedFieldName))
             {
                 continue;
             }
 
-			$sSql.= "`" . $sKey . "` " . $sValue . ",\n";
-		}
+            $sSql.= "`" . $sKey . "` " . $sValue . ",\n";
+        }
 
-		// add stamps + set primary key
-		$sSql.= "`stampChange` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        // add stamps + set primary key
+        $sSql.= "`stampChange` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 				`stampCreate` timestamp NOT NULL DEFAULT '" . date ('Y-m-d H:i:s') . "',
 				PRIMARY KEY (`id`)";
 
-		// set engine
-		$sSql.="\n) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=DYNAMIC;";
+        // set engine
+        $sSql.="\n) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=DYNAMIC;";
 
-		// additional commands
+        // additional commands
         foreach ($aAlterTable as $sValue)
         {
             $sSql.= "ALTER TABLE `" . $sTable . "` ADD " . $sValue . ";\n";
         }
 
-		try
-		{
-			$mState = $this->oDbPDO->query ($sSql);
-		}
-		catch (\Exception $oException)
-		{
-			\MVC\Error::EXCEPTION($oException);
-		}
+        try
+        {
+            $mState = $this->oDbPDO->query ($sSql);
+        }
+        catch (\Exception $oException)
+        {
+            \MVC\Error::EXCEPTION($oException);
+        }
 
-		return $mState;
-	}
+        return $mState;
+    }
 
     /**
      * @return bool
      * @throws \ReflectionException
      */
-	protected function synchronizeFields ()
-	{
-		$sSql = "SHOW COLUMNS FROM " . $this->sTableName;
+    protected function synchronizeFields ()
+    {
+        $sSql = "SHOW COLUMNS FROM " . $this->sTableName;
 
-		try
-		{
-			$aColumn = $this->oDbPDO->fetchAll ($sSql);
-		}
-		catch (\Exception $oException)
-		{
-			\MVC\Error::EXCEPTION($oException);
-			
-			return false;
-		}
+        try
+        {
+            $aColumn = $this->oDbPDO->fetchAll ($sSql);
+        }
+        catch (\Exception $oException)
+        {
+            \MVC\Error::EXCEPTION($oException);
 
-		if (empty($aColumn))
-		{
-			return false;
-		}
+            return false;
+        }
+
+        if (empty($aColumn))
+        {
+            return false;
+        }
 
         $aColumnFinal = array();
 
-		foreach ($aColumn as $aValue)
-		{
-			if (!in_array ($aValue['Field'], self::getReservedFieldNameArray()))
-			{
-				$aColumnFinal[$aValue['Field']] = $aValue;
-			}
-		}
+        foreach ($aColumn as $aValue)
+        {
+            if (!in_array ($aValue['Field'], self::getReservedFieldNameArray()))
+            {
+                $aColumnFinal[$aValue['Field']] = $aValue;
+            }
+        }
 
-		DELETE: {
+        $sCacheSyncKey = __METHOD__ . '.' . $this->sTableName;
+        $sCacheSyncValue = serialize($aColumnFinal) . '.' . serialize($this->sCacheValueTableName);
 
-		    // array1 has to be in array2
-            $aDelete = array_diff_key($this->aFieldArrayComplete, $aColumnFinal);
+        if ($sCacheSyncValue === \Cachix::getCache($sCacheSyncKey))
+        {
+            return true;
+        }
 
-			foreach ($aDelete as $sKey => $aValue)
-			{
-			    $oDTDBConstraint = $this->getConstraintInfo($aValue); # ['Field']);
-                $sSql = '';
+        \Cachix::saveCache($sCacheSyncKey, $sCacheSyncValue);
 
-                if ('' !== $oDTDBConstraint->get_CONSTRAINT_NAME())
-                {
-                    $sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP FOREIGN KEY `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
-                    $sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP INDEX `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
-                }
+        DELETE: {
 
-				$sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP  `" . $sKey . "`;\n";
+        // array1 has to be in array2
+        $aDelete = array_diff_key($this->aFieldArrayComplete, $aColumnFinal);
 
-				try
-				{
-					$this->oDbPDO->query ($sSql);
-				}
-				catch (\Exception $oException)
-				{
-					\MVC\Error::EXCEPTION($oException);
-
-					return false;
-				}
-			}
-		}
-		
-		INSERT: {
-			
-			$aInsert = array_diff_key($this->getFieldArray(), $aColumnFinal);
-
-			foreach ($aInsert as $sKey => $aValue)
-			{
-				$sSql = "ALTER TABLE  `" . $this->sTableName  . "` ADD  `" . $sKey . "` " . $aValue . " AFTER  `id`\n";
-
-				try
-				{
-					$this->oDbPDO->query ($sSql);
-				}
-				catch (\Exception $oException)
-				{
-					\MVC\Error::EXCEPTION($oException);
-					
-					return false;
-				}			
-			}		
-		}
-		
-		UPDATE: {
-
+        foreach ($aDelete as $sKey => $aValue)
+        {
+            $oDTDBConstraint = $this->getConstraintInfo($aValue); # ['Field']);
             $sSql = '';
 
-            foreach ($this->getFieldArray() as $sKey => $sValue)
+            if ('' !== $oDTDBConstraint->get_CONSTRAINT_NAME())
             {
-                $sSql.= "ALTER TABLE `" . $this->sTableName . "` CHANGE  `" . $sKey . "`\n`" . $sKey . "` " . $sValue . ";\n";
+                $sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP FOREIGN KEY `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
+                $sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP INDEX `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
             }
+
+            $sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP  `" . $sKey . "`;\n";
 
             try
             {
@@ -534,20 +512,63 @@ class Db
 
                 return false;
             }
+        }
+    }
 
-		}
-			
-		return true;
-	}
+        INSERT: {
 
-	/**
-	 * returns settings array from extending child class, if set
-	 * @return array
-	 */
+        $aInsert = array_diff_key($this->getFieldArray(), $aColumnFinal);
+
+        foreach ($aInsert as $sKey => $aValue)
+        {
+            $sSql = "ALTER TABLE  `" . $this->sTableName  . "` ADD  `" . $sKey . "` " . $aValue . " AFTER  `id`\n";
+
+            try
+            {
+                $this->oDbPDO->query ($sSql);
+            }
+            catch (\Exception $oException)
+            {
+                \MVC\Error::EXCEPTION($oException);
+
+                return false;
+            }
+        }
+    }
+
+        UPDATE: {
+
+        $sSql = '';
+
+        foreach ($this->getFieldArray() as $sKey => $sValue)
+        {
+            $sSql.= "ALTER TABLE `" . $this->sTableName . "` CHANGE  `" . $sKey . "`\n`" . $sKey . "` " . $sValue . ";\n";
+        }
+
+        try
+        {
+            $this->oDbPDO->query ($sSql);
+        }
+        catch (\Exception $oException)
+        {
+            \MVC\Error::EXCEPTION($oException);
+
+            return false;
+        }
+
+    }
+
+        return true;
+    }
+
+    /**
+     * returns settings array from extending child class, if set
+     * @return array
+     */
     protected function getFieldArray()
-	{
+    {
         return (isset($this->aField)) ? $this->aField : array();
-	}
+    }
 
     /**
      * @param string $sFieldName
@@ -643,13 +664,13 @@ class Db
      * @return mixed|string
      */
     protected static function createTableName($sString = '')
-	{
+    {
         ('' === $sString) ? $sString = __CLASS__ : false;
-		$sString = str_replace('\\', '', $sString);
+        $sString = str_replace('\\', '', $sString);
         $sString = str_replace('_', '', $sString);
 
-		return $sString;
-	}
+        return $sString;
+    }
 
     /**
      * @param TableDataType|null $oTableDataType
@@ -746,20 +767,20 @@ class Db
      * @param DTArrayObject $oDTArrayObjectOption
      * @return DB\DataType\DB\TableDataType[]
      * @example
-        * $oDTArrayObject = \MVC\DataType\DTArrayObject::create()
-            * ->add_aKeyValue(
-                * \MCC\DataType\DTKeyValue::create()
-                    * ->set_sKey(DTLCPModelTableLCP::getPropertyName_deliverable())
-                    * ->set_mOptional1('=')
-                    * ->set_sValue(1)
-            * )
-            * ->add_aKeyValue(
-                * \MCC\DataType\DTKeyValue::create()
-                    * ->set_sKey(DTLCPModelTableLCP::getPropertyName_dateTimeDelivered())
-                    * ->set_mOptional1('=')
-                    * ->set_sValue('0000-00-00 00:00:00')
-        * );
-        * $oDB->getArrayOfDTObjectsOnKeyHasValue($oDTDBArrayObject);
+     * $oDTArrayObject = \MVC\DataType\DTArrayObject::create()
+     * ->add_aKeyValue(
+     * \MCC\DataType\DTKeyValue::create()
+     * ->set_sKey(DTLCPModelTableLCP::getPropertyName_deliverable())
+     * ->set_mOptional1('=')
+     * ->set_sValue(1)
+     * )
+     * ->add_aKeyValue(
+     * \MCC\DataType\DTKeyValue::create()
+     * ->set_sKey(DTLCPModelTableLCP::getPropertyName_dateTimeDelivered())
+     * ->set_mOptional1('=')
+     * ->set_sValue('0000-00-00 00:00:00')
+     * );
+     * $oDB->getArrayOfDTObjectsOnKeyHasValue($oDTDBArrayObject);
      */
 
     /**
@@ -775,7 +796,7 @@ class Db
         $aPossibleToken = array('=', '<', '<=', '>', '>=', 'LIKE', '!=');
 
         $sSql = "SELECT * FROM `" . $this->sTableName . "` \nWHERE  1\n";
-        $sSqlExplain =  $sSql;
+        $sSqlExplain = $sSql;
 
         // add requirements
         if (true === ($oDTArrayObject instanceof DTArrayObject))
@@ -806,6 +827,8 @@ class Db
 
         $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
 
+        Log::WRITE($sSqlExplain, 'debug.log');
+
         Event::RUN(
             'db.model.db.retrieve.sql',
             DTArrayObject::create()
@@ -813,7 +836,7 @@ class Db
                     DTKeyValue::create()
                         ->set_sKey('sSqlExplain')
                         ->set_sValue($sSqlExplain)
-            )
+                )
         );
 
         $oStmt = $this->oDbPDO->prepare($sSql);
@@ -1018,7 +1041,7 @@ class Db
                     DTKeyValue::create()
                         ->set_sKey('sSqlExplain')
                         ->set_sValue($sSqlExplain)
-            )
+                )
         );
 
         $oStmt = $this->oDbPDO->prepare($sSql);
@@ -1129,7 +1152,7 @@ class Db
     /**
      * auto delete caches
      */
-	public function __destruct()
+    public function __destruct()
     {
         \Cachix::autoDeleteCache();
     }
