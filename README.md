@@ -139,3 +139,26 @@ $aDbConfig = array(
     )
 );
 ~~~
+
+# Events
+
+~~~
+db.model.db.setSqlLoggingState.exception
+db.model.db.setForeignKey.exception
+db.model.db.checkIfTableExists.exception
+db.model.db.createTable.exception
+db.model.db.synchronizeFields.exception
+db.model.db.synchronizeFields.delete.exception
+db.model.db.synchronizeFields.insert.exception
+db.model.db.synchronizeFields.update.exception
+db.model.db.create.sql
+db.model.db.create.exception
+db.model.db.retrieve.sql
+db.model.db.retrieve.exception
+db.model.db.count.sql
+db.model.db.count.exception
+db.model.db.update.sql
+db.model.db.update.exception
+db.model.db.delete.sql
+db.model.db.delete.exception
+~~~
