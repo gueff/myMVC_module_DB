@@ -208,6 +208,16 @@ class Db
         }
         catch (\Exception $oException)
         {
+            Event::RUN(
+                'db.model.db.setSqlLoggingState.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
             \MVC\Error::EXCEPTION($oException);
         }
     }
@@ -249,7 +259,18 @@ class Db
             }
             catch (\Exception $oException)
             {
+                Event::RUN(
+                    'db.model.db.setForeignKey.exception',
+                    DTArrayObject::create()
+                        ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                        ->add_aKeyValue(
+                            DTKeyValue::create()
+                                ->set_sKey('oException')
+                                ->set_sValue($oException)
+                        )
+                );
                 \MVC\Error::EXCEPTION($oException);
+
                 return false;
             }
 
@@ -361,7 +382,17 @@ class Db
 			$aResult = $this->oDbPDO->fetchAll ("DESCRIBE `" . $sTable . "`");
 		}
 		catch (\Exception $oException)
-		{		
+		{
+            Event::RUN(
+                'db.model.db.checkIfTableExists.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
 			Error::EXCEPTION($oException);
 
 			return false;
@@ -434,6 +465,16 @@ class Db
 		}
 		catch (\Exception $oException)
 		{
+            Event::RUN(
+                'db.model.db.createTable.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
 			\MVC\Error::EXCEPTION($oException);
 		}
 
@@ -454,6 +495,16 @@ class Db
 		}
 		catch (\Exception $oException)
 		{
+            Event::RUN(
+                'db.model.db.synchronizeFields.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
 			\MVC\Error::EXCEPTION($oException);
 			
 			return false;
@@ -508,6 +559,16 @@ class Db
 				}
 				catch (\Exception $oException)
 				{
+                    Event::RUN(
+                        'db.model.db.synchronizeFields.delete.exception',
+                        DTArrayObject::create()
+                            ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                            ->add_aKeyValue(
+                                DTKeyValue::create()
+                                    ->set_sKey('oException')
+                                    ->set_sValue($oException)
+                            )
+                    );
 					\MVC\Error::EXCEPTION($oException);
 
 					return false;
@@ -529,6 +590,16 @@ class Db
 				}
 				catch (\Exception $oException)
 				{
+                    Event::RUN(
+                        'db.model.db.synchronizeFields.insert.exception',
+                        DTArrayObject::create()
+                            ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                            ->add_aKeyValue(
+                                DTKeyValue::create()
+                                    ->set_sKey('oException')
+                                    ->set_sValue($oException)
+                            )
+                    );
 					\MVC\Error::EXCEPTION($oException);
 					
 					return false;
@@ -551,6 +622,16 @@ class Db
             }
             catch (\Exception $oException)
             {
+                Event::RUN(
+                    'db.model.db.synchronizeFields.update.exception',
+                    DTArrayObject::create()
+                        ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                        ->add_aKeyValue(
+                            DTKeyValue::create()
+                                ->set_sKey('oException')
+                                ->set_sValue($oException)
+                        )
+                );
                 \MVC\Error::EXCEPTION($oException);
 
                 return false;
@@ -651,6 +732,16 @@ class Db
         }
         catch (\Exception $oException)
         {
+            Event::RUN(
+                'db.model.db.getConstraintInfo.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
             Error::EXCEPTION($oException);
         }
 
@@ -705,9 +796,13 @@ class Db
         {
             if ('id' === $sField){continue;}
             $sSql.= ":" . $sField . ",";
-            $sSqlExplain.= ":" . $sField . ",";
+
+            $sMethod = 'get_' . $sField;
+            $sValue = $oTableDataType->$sMethod();
+            $sSqlExplain.= "'" . $sValue . "',";
         }
 
+        $sSqlExplain = substr($sSqlExplain, 0, -1);
         $sSql = substr($sSql, 0, -1);
         $sSql.= "\n);\n";
         $sSqlExplain.= "); ";
@@ -715,6 +810,7 @@ class Db
         Event::RUN(
             'db.model.db.create.sql',
             DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
                 ->add_aKeyValue(
                     DTKeyValue::create()
                         ->set_sKey('sSqlExplain')
@@ -753,9 +849,19 @@ class Db
             $iId = $this->oDbPDO->lastInsertId();
             $oTableDataType->set_id($iId);
         }
-        catch (\Exception $oExc)
+        catch (\Exception $oException)
         {
-            Error::EXCEPTION($oExc);
+            Event::RUN(
+                'db.model.db.create.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
+            Error::EXCEPTION($oException);
         }
 
         return $oTableDataType;
@@ -830,11 +936,8 @@ class Db
         Event::RUN(
             'db.model.db.retrieve.sql',
             DTArrayObject::create()
-                ->add_aKeyValue(
-                    DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
-            )
+                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sSqlExplain')->set_sValue($sSqlExplain))
         );
 
         $oStmt = $this->oDbPDO->prepare($sSql);
@@ -882,9 +985,19 @@ class Db
                 $aObject[] = $oObject;
             }
         }
-        catch (\Exception $oExc)
+        catch (\Exception $oException)
         {
-            Error::EXCEPTION($oExc);
+            Event::RUN(
+                'db.model.db.retrieve.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
+            Error::EXCEPTION($oException);
         }
 
         return $aObject;
@@ -936,6 +1049,7 @@ class Db
         Event::RUN(
             'db.model.db.count.sql',
             DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
                 ->add_aKeyValue(
                     DTKeyValue::create()
                         ->set_sKey('sSqlExplain')
@@ -971,9 +1085,19 @@ class Db
             $aFetchAll = $oStmt->fetchAll(\PDO::FETCH_ASSOC);
             $iAmount = (int) current($aFetchAll)['iAmount'];
         }
-        catch (\Exception $oExc)
+        catch (\Exception $oException)
         {
-            Error::EXCEPTION($oExc);
+            Event::RUN(
+                'db.model.db.count.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
+            Error::EXCEPTION($oException);
         }
 
         /** integer */
@@ -1035,6 +1159,7 @@ class Db
         Event::RUN(
             'db.model.db.update.sql',
             DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
                 ->add_aKeyValue(
                     DTKeyValue::create()
                         ->set_sKey('sSqlExplain')
@@ -1068,9 +1193,19 @@ class Db
         {
             $oStmt->execute();
         }
-        catch (\Exception $oExc)
+        catch (\Exception $oException)
         {
-            \MVC\Error::EXCEPTION($oExc);
+            Event::RUN(
+                'db.model.db.update.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
+            \MVC\Error::EXCEPTION($oException);
             return false;
         }
 
@@ -1107,6 +1242,7 @@ class Db
         Event::RUN(
             'db.model.db.delete.sql',
             DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
                 ->add_aKeyValue(
                     DTKeyValue::create()
                         ->set_sKey('sSqlExplain')
@@ -1137,9 +1273,19 @@ class Db
         {
             $bDelete = $oStmt->execute();
         }
-        catch (\Exception $oExc)
+        catch (\Exception $oException)
         {
-            Error::EXCEPTION($oExc);
+            Event::RUN(
+                'db.model.db.delete.exception',
+                DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
+                    ->add_aKeyValue(
+                        DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)
+                    )
+            );
+            Error::EXCEPTION($oException);
 
             return false;
         }
