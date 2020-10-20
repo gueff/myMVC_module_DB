@@ -142,14 +142,12 @@ class Db
      */
 	public function __construct ($aFields = array(), $aDbConfig = array(), $aAlterTable = array())
 	{
-        Log::WRITE(__METHOD__, self::createTableName() . '.log');
-
         $this->aFieldArrayComplete = $aFields;
         $this->aConfig = $aDbConfig;
 	    $this->sTableName = self::createTableName(get_class($this));
-
         $this->sCacheKeyTableName = __CLASS__ . '.' . $this->sTableName;
         $this->sCacheValueTableName = func_get_args();
+        Log::WRITE(__METHOD__, $this->sTableName . '.log');
 
         // init DB
         $sRegistryKey = self::createTableName(__CLASS__) . '.DbPDO';
