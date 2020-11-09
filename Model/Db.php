@@ -55,6 +55,11 @@ class Db
     protected $aFieldArrayComplete = array();
 
     /**
+     * @var \DB\DataType\DB\Foreign[]
+     */
+    protected $aForeign = array();
+
+    /**
      * @var \DB\Model\DbPDO
      */
 	protected $oDbPDO;
@@ -80,7 +85,7 @@ class Db
 	protected $aReservedFieldName = array(
 	    'id',
         'stampChange',
-        'stampCreate'
+        'stampCreate',
     );
 
     /**
@@ -135,18 +140,21 @@ class Db
 
     /**
      * Db constructor.
-     * @param array $aFields
-     * @param array $aDbConfig
-     * @param array $aAlterTable
+     * @param array                     $aFields
+     * @param array                     $aDbConfig
+     * @param array                     $aAlterTable
+     * @param \DB\DataType\DB\Foreign[] $aForeign
      * @throws \ReflectionException
      */
-	public function __construct ($aFields = array(), $aDbConfig = array(), $aAlterTable = array())
+	public function __construct ($aFields = array(), $aDbConfig = array(), $aAlterTable = array(), $aForeign = array())
 	{
         $this->aFieldArrayComplete = $aFields;
+        $this->aForeign = $aForeign;
         $this->aConfig = $aDbConfig;
 	    $this->sTableName = self::createTableName(get_class($this));
-        $this->sCacheKeyTableName = __CLASS__ . '.' . $this->sTableName;
+        $this->sCacheKeyTableName = preg_replace('/[^a-zA-Z0-9\.]+/', '_', trim(__CLASS__ . '.' . $this->sTableName));
         $this->sCacheValueTableName = func_get_args();
+
         Log::WRITE(__METHOD__, $this->sTableName . '.log');
 
         // init DB
@@ -167,7 +175,10 @@ class Db
 
         if ($this->sCacheValueTableName !== \Cachix::getCache($this->sCacheKeyTableName))
         {
-            (false === filter_var($this->checkIfTableExists ($this->sTableName), FILTER_VALIDATE_BOOLEAN)) ? $this->createTable($this->sTableName, $aFields, $aAlterTable) : false;
+            (false === filter_var($this->checkIfTableExists ($this->sTableName), FILTER_VALIDATE_BOOLEAN))
+                ? $this->createTable($this->sTableName, $aFields, $aAlterTable)
+                : false
+            ;
             $this->synchronizeFields();
 
             if (true === self::$bCaching)
@@ -221,6 +232,18 @@ class Db
     }
 
     /**
+     * @throws \ReflectionException
+     */
+    public function foreignAuto()
+    {
+        /** @var \DB\DataType\DB\Foreign $oDtDbForeign */
+        foreach ($this->aForeign as $oDtDbForeign)
+        {
+            $this->setForeignKey($oDtDbForeign);
+        }
+    }
+
+    /**
      * @param Foreign $oDtDbForeign
      * @return bool
      * @throws \ReflectionException
@@ -239,7 +262,7 @@ class Db
                 REFERENCES `" . $oDtDbForeign->get_sReferenceTable() . "` (`" . $oDtDbForeign->get_sReferenceKey() . "`)
                 " . $oDtDbForeign->get_sOnDelete() . " " . $oDtDbForeign->get_sOnUpdate() . ";";
 
-        $sCacheKey = __METHOD__ . '.' . $this->sTableName . '.' . md5(serialize($oDtDbForeign));
+        $sCacheKey = preg_replace('/[^a-zA-Z0-9\.]+/', '_', trim(__METHOD__ . '.' . $this->sTableName . '.' . md5(serialize($oDtDbForeign))));
 
         // add to final, completed  field array
         if (false === in_array($oDtDbForeign->get_sForeignKey(), $this->aFieldArrayComplete))
@@ -302,7 +325,7 @@ class Db
      * @return bool
      * @throws \ReflectionException
      */
-    protected function generateDataType()
+    public function generateDataType()
     {
         $sClassName = $this->getGenerateDataTypeClassName();
 
@@ -315,8 +338,8 @@ class Db
                 'extends' => '\\DB\\DataType\\DB\\TableDataType',
                 'namespace' => Request::getInstance()->getModule() . '\DataType',
                 'constant' => array(),
-                'property' => array()
-            ))
+                'property' => array(),
+            )),
         );
 
         $aTableDataTypeProperty = array_keys(TableDataType::create()->getPropertyArray());
@@ -331,6 +354,25 @@ class Db
             }
 
             $aDTConfig['class'][0]['property'][] = array('key' => $sKey, 'var' => $aValue['php']);
+        }
+
+        if (false === empty($this->aForeign))
+        {
+            /** @var \DB\DataType\DB\Foreign $oForeign */
+            foreach ($this->aForeign as $oForeign)
+            {
+                if (0 !== $oForeign->get_sReferenceTable())
+                {
+                    $aDTConfig['class'][0]['property'][] = array(
+                        'key' => 'oDT' . $oForeign->get_sReferenceTable(),
+                        'var' => '\\' . Request::getInstance()->getModule() . '\\DataType\\DT' . $oForeign->get_sReferenceTable(),
+                         // do not set value in constructor - this could lead to endless recursive loops...
+                        'setValueInConstructor' => false,
+                        // ...so this value is not set, but stays here just for info
+                        'value' => '\\' . Request::getInstance()->getModule() . '\\DataType\\DT' . $oForeign->get_sReferenceTable(). '::create()',
+                    );
+                }
+            }
         }
 
         $bSuccess = DataType::create()->initConfigArray($aDTConfig);
@@ -483,7 +525,7 @@ class Db
      * @return bool
      * @throws \ReflectionException
      */
-	protected function synchronizeFields ()
+	public function synchronizeFields ()
 	{
 		$sSql = "SHOW COLUMNS FROM " . $this->sTableName;
 
@@ -523,7 +565,7 @@ class Db
 			}
 		}
 
-		$sCacheSyncKey = __METHOD__ . '.' . $this->sTableName;
+        $sCacheSyncKey = preg_replace('/[^a-zA-Z0-9\.]+/', '_', trim(__METHOD__ . '.' . $this->sTableName));
 		$sCacheSyncValue = serialize($aColumnFinal) . '.' . serialize($this->sCacheValueTableName);
 
         if ($sCacheSyncValue === \Cachix::getCache($sCacheSyncKey))
