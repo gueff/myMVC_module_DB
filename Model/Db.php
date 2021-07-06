@@ -2,17 +2,17 @@
 /**
  * Db.php
  * This is part of the myMVC module "DB"
- *
- * @module DB
- * @package DB\Model
+ * @module    DB
+ * @package   DB\Model
  * @copyright ueffing.net
- * @author Guido K.B.W. Üffing <info@ueffing.net>
- * @license GNU GENERAL PUBLIC LICENSE Version 3. See application/doc/COPYING
+ * @author    Guido K.B.W. Üffing <info@ueffing.net>
+ * @license   GNU GENERAL PUBLIC LICENSE Version 3. See application/doc/COPYING
  */
 
 /**
  * @name $DBModel
  */
+
 namespace DB\Model;
 
 use DB\DataType\DB\ArrayObject;
@@ -55,25 +55,20 @@ class Db
     protected $aFieldArrayComplete = array();
 
     /**
-     * @var \DB\DataType\DB\Foreign[]
-     */
-    protected $aForeign = array();
-
-    /**
      * @var \DB\Model\DbPDO
      */
-	protected $oDbPDO;
+    protected $oDbPDO;
 
     /**
      * @var bool
      */
-	protected static $bCaching = true;
+    protected static $bCaching = true;
 
     /**
      * @see README.md
      * @var array
      */
-	protected $aConfig = array();
+    protected $aConfig = array();
 
     /**
      * These Fieldnames are reserved and may not be part of setup
@@ -82,8 +77,8 @@ class Db
      * an empty array to it: $oDb->setReservedFieldNameArray(array());
      * @var array
      */
-	protected $aReservedFieldName = array(
-	    'id',
+    protected $aReservedFieldName = array(
+        'id',
         'stampChange',
         'stampCreate',
     );
@@ -93,69 +88,68 @@ class Db
      * @var array
      */
     protected static $aSqlType = array(
-        'char' => 'string',
-        'varchar' => 'string',
-        'binary' => 'string',
-        'varbinary' => 'string',
-        'tinyblob' => 'string',
-        'blob' => 'string',
+        'char'       => 'string',
+        'varchar'    => 'string',
+        'binary'     => 'string',
+        'varbinary'  => 'string',
+        'tinyblob'   => 'string',
+        'blob'       => 'string',
         'mediumblob' => 'string',
-        'longblob' => 'string',
-        'tinytext' => 'string',
-        'text' => 'string',
+        'longblob'   => 'string',
+        'tinytext'   => 'string',
+        'text'       => 'string',
         'mediumtext' => 'string',
-        'longtext' => 'string',
-        'enum' => 'string',
-        'set' => 'string',
+        'longtext'   => 'string',
+        'enum'       => 'string',
+        'set'        => 'string',
 
-        'date' => 'string',
-        'time' => 'string',
-        'datetime' => 'string',
+        'date'      => 'string',
+        'time'      => 'string',
+        'datetime'  => 'string',
         'timestamp' => 'string',
-        'year' => 'string',
+        'year'      => 'string',
 
-        'tinyint' => 'int',
-        'smallint' => 'int',
+        'tinyint'   => 'int',
+        'smallint'  => 'int',
         'mediumint' => 'int',
-        'int' => 'int',
-        'bigint' => 'int',
-        'float' => 'float',
-        'double' => 'double',
+        'int'       => 'int',
+        'bigint'    => 'int',
+        'float'     => 'float',
+        'double'    => 'double',
 
-        'bit' => 'boolean',
+        'bit'     => 'boolean',
         'boolean' => 'boolean',
-        'bool' => 'boolean',
+        'bool'    => 'boolean',
 
-        'geometry' => 'string',
-        'point' => 'string',
-        'linestring' => 'string',
-        'polygon' => 'string',
+        'geometry'           => 'string',
+        'point'              => 'string',
+        'linestring'         => 'string',
+        'polygon'            => 'string',
         'geometrycollection' => 'string',
-        'multilinestring' => 'string',
-        'multipoint' => 'string',
-        'multipolygon' => 'string',
+        'multilinestring'    => 'string',
+        'multipoint'         => 'string',
+        'multipolygon'       => 'string',
 
         'json' => 'string',
     );
 
     /**
      * Db constructor.
-     * @param array                     $aFields
-     * @param array                     $aDbConfig
-     * @param array                     $aAlterTable
-     * @param \DB\DataType\DB\Foreign[] $aForeign
+     * @param array $aFields
+     * @param array $aDbConfig
+     * @param array $aAlterTable
      * @throws \ReflectionException
      */
-	public function __construct ($aFields = array(), $aDbConfig = array(), $aAlterTable = array(), $aForeign = array())
-	{
-        $this->aFieldArrayComplete = $aFields;
-        $this->aForeign = $aForeign;
-        $this->aConfig = $aDbConfig;
-	    $this->sTableName = self::createTableName(get_class($this));
-        $this->sCacheKeyTableName = preg_replace('/[^a-zA-Z0-9\.]+/', '_', trim(__CLASS__ . '.' . $this->sTableName));
-        $this->sCacheValueTableName = func_get_args();
+    public function __construct($aFields = array(), $aDbConfig = array(), $aAlterTable = array())
+    {
+        Log::WRITE(__METHOD__, self::createTableName() . '.log');
 
-        Log::WRITE(__METHOD__, $this->sTableName . '.log');
+        $this->aFieldArrayComplete = $aFields;
+        $this->aConfig = $aDbConfig;
+        $this->sTableName = self::createTableName(get_class($this));
+
+        $this->sCacheKeyTableName = __CLASS__ . '.' . $this->sTableName;
+        $this->sCacheValueTableName = func_get_args();
 
         // init DB
         $sRegistryKey = self::createTableName(__CLASS__) . '.DbPDO';
@@ -175,29 +169,27 @@ class Db
 
         if ($this->sCacheValueTableName !== \Cachix::getCache($this->sCacheKeyTableName))
         {
-            (false === filter_var($this->checkIfTableExists ($this->sTableName), FILTER_VALIDATE_BOOLEAN))
+            (false === filter_var($this->checkIfTableExists($this->sTableName), FILTER_VALIDATE_BOOLEAN))
                 ? $this->createTable($this->sTableName, $aFields, $aAlterTable)
-                : false
-            ;
+                : false;
             $this->synchronizeFields();
 
             if (true === self::$bCaching)
             {
-                \Cachix::saveCache(
-                    $this->sCacheKeyTableName,
-                    $this->sCacheValueTableName
-                );
+                \Cachix::saveCache($this->sCacheKeyTableName, $this->sCacheValueTableName);
             }
         }
 
-	}
+    }
 
     /**
      * Sets Caching state due to config
      */
     protected function setCachingState()
     {
-        self::$bCaching = (isset($this->aConfig['caching']['enabled'])) ? $this->aConfig['caching']['enabled'] : false;
+        self::$bCaching = (isset($this->aConfig['caching']['enabled']))
+            ? $this->aConfig['caching']['enabled']
+            : false;
     }
 
     /**
@@ -206,9 +198,15 @@ class Db
     protected function setSqlLoggingState()
     {
         $sSql = '';
-        (isset($this->aConfig['logging']['log_output'])) ? $sSql.= "SET GLOBAL log_output = '" . strtoupper($this->aConfig['logging']['log_output']) . "';" : false;
-        (isset($this->aConfig['logging']['general_log'])) ? $sSql.= "SET GLOBAL general_log = '" . strtoupper($this->aConfig['logging']['general_log']) . "';" : false;
-        (isset($this->aConfig['logging']['general_log_file'])) ? $sSql.= "SET GLOBAL general_log_file = '" . $this->aConfig['logging']['general_log_file'] . "';" : false;
+        (isset($this->aConfig['logging']['log_output']))
+            ? $sSql .= "SET GLOBAL log_output = '" . strtoupper($this->aConfig['logging']['log_output']) . "';"
+            : false;
+        (isset($this->aConfig['logging']['general_log']))
+            ? $sSql .= "SET GLOBAL general_log = '" . strtoupper($this->aConfig['logging']['general_log']) . "';"
+            : false;
+        (isset($this->aConfig['logging']['general_log_file']))
+            ? $sSql .= "SET GLOBAL general_log_file = '" . $this->aConfig['logging']['general_log_file'] . "';"
+            : false;
         $oStmt = $this->oDbPDO->prepare($sSql);
 
         try
@@ -217,29 +215,14 @@ class Db
         }
         catch (\Exception $oException)
         {
-            Event::RUN(
-                'db.model.db.setSqlLoggingState.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
+            Event::RUN('db.model.db.setSqlLoggingState.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
             \MVC\Error::EXCEPTION($oException);
-        }
-    }
-
-    /**
-     * @throws \ReflectionException
-     */
-    public function foreignAuto()
-    {
-        /** @var \DB\DataType\DB\Foreign $oDtDbForeign */
-        foreach ($this->aForeign as $oDtDbForeign)
-        {
-            $this->setForeignKey($oDtDbForeign);
         }
     }
 
@@ -262,7 +245,7 @@ class Db
                 REFERENCES `" . $oDtDbForeign->get_sReferenceTable() . "` (`" . $oDtDbForeign->get_sReferenceKey() . "`)
                 " . $oDtDbForeign->get_sOnDelete() . " " . $oDtDbForeign->get_sOnUpdate() . ";";
 
-        $sCacheKey = preg_replace('/[^a-zA-Z0-9\.]+/', '_', trim(__METHOD__ . '.' . $this->sTableName . '.' . md5(serialize($oDtDbForeign))));
+        $sCacheKey = __METHOD__ . '.' . $this->sTableName . '.' . md5(serialize($oDtDbForeign));
 
         // add to final, completed  field array
         if (false === in_array($oDtDbForeign->get_sForeignKey(), $this->aFieldArrayComplete))
@@ -280,25 +263,19 @@ class Db
             }
             catch (\Exception $oException)
             {
-                Event::RUN(
-                    'db.model.db.setForeignKey.exception',
-                    DTArrayObject::create()
-                        ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                        ->add_aKeyValue(
-                            DTKeyValue::create()
-                                ->set_sKey('oException')
-                                ->set_sValue($oException)
-                        )
-                );
+                Event::RUN('db.model.db.setForeignKey.exception', DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()
+                        ->set_sKey('sTableName')
+                        ->set_sValue($this->sTableName))
+                    ->add_aKeyValue(DTKeyValue::create()
+                        ->set_sKey('oException')
+                        ->set_sValue($oException)));
                 \MVC\Error::EXCEPTION($oException);
 
                 return false;
             }
 
-            \Cachix::saveCache(
-                $sCacheKey,
-                $sSql
-            );
+            \Cachix::saveCache($sCacheKey, $sSql);
         }
 
         return true;
@@ -325,24 +302,29 @@ class Db
      * @return bool
      * @throws \ReflectionException
      */
-    public function generateDataType()
+    protected function generateDataType()
     {
         $sClassName = $this->getGenerateDataTypeClassName();
 
         $aDTConfig = array(
-            'dir' => Registry::get('MVC_MODULES') . '/' . Request::getInstance()->getModule() . '/DataType/',
+            'dir'       => Registry::get('MVC_MODULES') . '/' . Request::getInstance()
+                    ->getModule() . '/DataType/',
             'unlinkDir' => false,
-            'class' => array(array(
-                'name' => $sClassName,
-                'file' => $sClassName . '.php',
-                'extends' => '\\DB\\DataType\\DB\\TableDataType',
-                'namespace' => Request::getInstance()->getModule() . '\DataType',
-                'constant' => array(),
-                'property' => array(),
-            )),
+            'class'     => array(
+                array(
+                    'name'      => $sClassName,
+                    'file'      => $sClassName . '.php',
+                    'extends'   => '\\DB\\DataType\\DB\\TableDataType',
+                    'namespace' => Request::getInstance()
+                                       ->getModule() . '\DataType',
+                    'constant'  => array(),
+                    'property'  => array(),
+                ),
+            ),
         );
 
-        $aTableDataTypeProperty = array_keys(TableDataType::create()->getPropertyArray());
+        $aTableDataTypeProperty = array_keys(TableDataType::create()
+            ->getPropertyArray());
         $aField = $this->getFieldInfo('', false);
 
         foreach ($aField as $sKey => $aValue)
@@ -353,29 +335,11 @@ class Db
                 continue;
             }
 
-            $aDTConfig['class'][0]['property'][] = array('key' => $sKey, 'var' => $aValue['php']);
+            $aDTConfig['class'][0]['property'][] = array('key' => $sKey, 'var' => ($aValue['php'] ?? ''));
         }
 
-        if (false === empty($this->aForeign))
-        {
-            /** @var \DB\DataType\DB\Foreign $oForeign */
-            foreach ($this->aForeign as $oForeign)
-            {
-                if (0 !== $oForeign->get_sReferenceTable())
-                {
-                    $aDTConfig['class'][0]['property'][] = array(
-                        'key' => 'oDT' . $oForeign->get_sReferenceTable(),
-                        'var' => '\\' . Request::getInstance()->getModule() . '\\DataType\\DT' . $oForeign->get_sReferenceTable(),
-                         // do not set value in constructor - this could lead to endless recursive loops...
-                        'setValueInConstructor' => false,
-                        // ...so this value is not set, but stays here just for info
-                        'value' => '\\' . Request::getInstance()->getModule() . '\\DataType\\DT' . $oForeign->get_sReferenceTable(). '::create()',
-                    );
-                }
-            }
-        }
-
-        $bSuccess = DataType::create()->initConfigArray($aDTConfig);
+        $bSuccess = DataType::create()
+            ->initConfigArray($aDTConfig);
 
         return $bSuccess;
     }
@@ -414,159 +378,150 @@ class Db
      * @return bool
      * @throws \ReflectionException
      */
-	protected function checkIfTableExists ($sTable)
-	{
-		try
-		{						
-			// Select 1 from table_name will return false if the table does not exist.
-			$aResult = $this->oDbPDO->fetchAll ("DESCRIBE `" . $sTable . "`");
-		}
-		catch (\Exception $oException)
-		{
-            Event::RUN(
-                'db.model.db.checkIfTableExists.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
-			Error::EXCEPTION($oException);
+    protected function checkIfTableExists($sTable)
+    {
+        try
+        {
+            // Select 1 from table_name will return false if the table does not exist.
+            $aResult = $this->oDbPDO->fetchAll("DESCRIBE `" . $sTable . "`");
+        }
+        catch (\Exception $oException)
+        {
+            Event::RUN('db.model.db.checkIfTableExists.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
+            Error::EXCEPTION($oException);
 
-			return false;
-		}
-		
-		if (empty($aResult))
-		{
-			return false;
-		}
+            return false;
+        }
 
-		return true;
-	}
+        if (empty($aResult))
+        {
+            return false;
+        }
 
-	/**
+        return true;
+    }
+
+    /**
      * Creates InnoDB Table
-     * @example $aFields
-     * array(
-     *      , 'url'                 => 'varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL'
-     *      , 'dateTimeInvalid'     => 'datetime'
-     *      , 'jsonContext'         => 'text'
-     *      , 'deliverable'         => 'int(1)'
-     *      , 'dateTimeDelivered'   => 'datetime'
-     * );
-     * @param $sTable
-     * @param $aFields
+     * @param       $sTable
+     * @param       $aFields
      * @param array $aAlterTable
      * @return bool|false|\PDOStatement
      * @throws \ReflectionException
+     * @example $aFields
+     *          array(
+     *          , 'url'                 => 'varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL'
+     *          , 'dateTimeInvalid'     => 'datetime'
+     *          , 'jsonContext'         => 'text'
+     *          , 'deliverable'         => 'int(1)'
+     *          , 'dateTimeDelivered'   => 'datetime'
+     *          );
      */
-	protected function createTable ($sTable, $aFields, $aAlterTable = array())
-	{
+    protected function createTable($sTable, $aFields, $aAlterTable = array())
+    {
         $mState = false;
 
         // drop, create, add id
-		$sSql = "
+        $sSql = "
             DROP TABLE IF EXISTS `" . $sTable . "`; 
             CREATE TABLE IF NOT EXISTS `" . $sTable . "` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
             ";
 
-		// iterate fields
-		foreach ($aFields as $sKey => $sValue)
-		{
-		    // skip these
-		    if (in_array($sKey, $this->aReservedFieldName))
+        // iterate fields
+        foreach ($aFields as $sKey => $sValue)
+        {
+            // skip these
+            if (in_array($sKey, $this->aReservedFieldName))
             {
                 continue;
             }
 
-			$sSql.= "`" . $sKey . "` " . $sValue . ",\n";
-		}
-
-		// add stamps + set primary key
-		$sSql.= "`stampChange` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-				`stampCreate` timestamp NOT NULL DEFAULT '" . date ('Y-m-d H:i:s') . "',
-				PRIMARY KEY (`id`)";
-
-		// set engine
-		$sSql.="\n) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=DYNAMIC;";
-
-		// additional commands
-        foreach ($aAlterTable as $sValue)
-        {
-            $sSql.= "ALTER TABLE `" . $sTable . "` ADD " . $sValue . ";\n";
+            $sSql .= "`" . $sKey . "` " . $sValue . ",\n";
         }
 
-		try
-		{
-			$mState = $this->oDbPDO->query ($sSql);
-		}
-		catch (\Exception $oException)
-		{
-            Event::RUN(
-                'db.model.db.createTable.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
-			\MVC\Error::EXCEPTION($oException);
-		}
+        // add stamps + set primary key
+        $sSql .= "`stampChange` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				`stampCreate` timestamp NOT NULL DEFAULT '" . date('Y-m-d H:i:s') . "',
+				PRIMARY KEY (`id`)";
 
-		return $mState;
-	}
+        // set engine
+        $sSql .= "\n) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=DYNAMIC;";
+
+        // additional commands
+        foreach ($aAlterTable as $sValue)
+        {
+            $sSql .= "ALTER TABLE `" . $sTable . "` ADD " . $sValue . ";\n";
+        }
+
+        try
+        {
+            $mState = $this->oDbPDO->query($sSql);
+        }
+        catch (\Exception $oException)
+        {
+            Event::RUN('db.model.db.createTable.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
+            \MVC\Error::EXCEPTION($oException);
+        }
+
+        return $mState;
+    }
 
     /**
      * @return bool
      * @throws \ReflectionException
      */
-	public function synchronizeFields ()
-	{
-		$sSql = "SHOW COLUMNS FROM " . $this->sTableName;
+    protected function synchronizeFields()
+    {
+        $sSql = "SHOW COLUMNS FROM " . $this->sTableName;
 
-		try
-		{
-			$aColumn = $this->oDbPDO->fetchAll ($sSql);
-		}
-		catch (\Exception $oException)
-		{
-            Event::RUN(
-                'db.model.db.synchronizeFields.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
-			\MVC\Error::EXCEPTION($oException);
-			
-			return false;
-		}
+        try
+        {
+            $aColumn = $this->oDbPDO->fetchAll($sSql);
+        }
+        catch (\Exception $oException)
+        {
+            Event::RUN('db.model.db.synchronizeFields.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
+            \MVC\Error::EXCEPTION($oException);
 
-		if (empty($aColumn))
-		{
-			return false;
-		}
+            return false;
+        }
+
+        if (empty($aColumn))
+        {
+            return false;
+        }
 
         $aColumnFinal = array();
 
-		foreach ($aColumn as $aValue)
-		{
-			if (!in_array ($aValue['Field'], self::getReservedFieldNameArray()))
-			{
-				$aColumnFinal[$aValue['Field']] = $aValue;
-			}
-		}
+        foreach ($aColumn as $aValue)
+        {
+            if (!in_array($aValue['Field'], self::getReservedFieldNameArray()))
+            {
+                $aColumnFinal[$aValue['Field']] = $aValue;
+            }
+        }
 
-        $sCacheSyncKey = preg_replace('/[^a-zA-Z0-9\.]+/', '_', trim(__METHOD__ . '.' . $this->sTableName));
-		$sCacheSyncValue = serialize($aColumnFinal) . '.' . serialize($this->sCacheValueTableName);
+        $sCacheSyncKey = __METHOD__ . '.' . $this->sTableName;
+        $sCacheSyncValue = serialize($aColumnFinal) . '.' . serialize($this->sCacheValueTableName);
 
         if ($sCacheSyncValue === \Cachix::getCache($sCacheSyncKey))
         {
@@ -575,138 +530,140 @@ class Db
 
         \Cachix::saveCache($sCacheSyncKey, $sCacheSyncValue);
 
-		DELETE: {
+        DELETE:
+        {
 
-		    // array1 has to be in array2
+            // array1 has to be in array2
             $aDelete = array_diff_key($this->aFieldArrayComplete, $aColumnFinal);
 
-			foreach ($aDelete as $sKey => $aValue)
-			{
-			    $oDTDBConstraint = $this->getConstraintInfo($aValue); # ['Field']);
+            foreach ($aDelete as $sKey => $aValue)
+            {
+                $oDTDBConstraint = $this->getConstraintInfo($aValue); # ['Field']);
                 $sSql = '';
 
                 if ('' !== $oDTDBConstraint->get_CONSTRAINT_NAME())
                 {
-                    $sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP FOREIGN KEY `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
-                    $sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP INDEX `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
+                    $sSql .= "ALTER TABLE  `" . $this->sTableName . "` DROP FOREIGN KEY `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
+                    $sSql .= "ALTER TABLE  `" . $this->sTableName . "` DROP INDEX `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
                 }
 
-				$sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP  `" . $sKey . "`;\n";
+                $sSql .= "ALTER TABLE  `" . $this->sTableName . "` DROP  `" . $sKey . "`;\n";
 
-				try
-				{
-					$this->oDbPDO->query ($sSql);
-				}
-				catch (\Exception $oException)
-				{
-                    Event::RUN(
-                        'db.model.db.synchronizeFields.delete.exception',
-                        DTArrayObject::create()
-                            ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                            ->add_aKeyValue(
-                                DTKeyValue::create()
-                                    ->set_sKey('oException')
-                                    ->set_sValue($oException)
-                            )
-                    );
-					\MVC\Error::EXCEPTION($oException);
+                try
+                {
+                    $this->oDbPDO->query($sSql);
+                }
+                catch (\Exception $oException)
+                {
+                    Event::RUN('db.model.db.synchronizeFields.delete.exception', DTArrayObject::create()
+                        ->add_aKeyValue(DTKeyValue::create()
+                            ->set_sKey('sTableName')
+                            ->set_sValue($this->sTableName))
+                        ->add_aKeyValue(DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)));
+                    \MVC\Error::EXCEPTION($oException);
 
-					return false;
-				}
-			}
-		}
-		
-		INSERT: {
-			
-			$aInsert = array_diff_key($this->getFieldArray(), $aColumnFinal);
+                    return false;
+                }
+            }
+        }
 
-			foreach ($aInsert as $sKey => $aValue)
-			{
-				$sSql = "ALTER TABLE  `" . $this->sTableName  . "` ADD  `" . $sKey . "` " . $aValue . " AFTER  `id`\n";
+        INSERT:
+        {
 
-				try
-				{
-					$this->oDbPDO->query ($sSql);
-				}
-				catch (\Exception $oException)
-				{
-                    Event::RUN(
-                        'db.model.db.synchronizeFields.insert.exception',
-                        DTArrayObject::create()
-                            ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                            ->add_aKeyValue(
-                                DTKeyValue::create()
-                                    ->set_sKey('oException')
-                                    ->set_sValue($oException)
-                            )
-                    );
-					\MVC\Error::EXCEPTION($oException);
-					
-					return false;
-				}			
-			}		
-		}
-		
-		UPDATE: {
+            $aInsert = array_diff_key($this->getFieldArray(), $aColumnFinal);
+
+            foreach ($aInsert as $sKey => $aValue)
+            {
+                $sSql = "ALTER TABLE  `" . $this->sTableName . "` ADD  `" . $sKey . "` " . $aValue . " AFTER  `id`\n";
+
+                try
+                {
+                    $this->oDbPDO->query($sSql);
+                }
+                catch (\Exception $oException)
+                {
+                    Event::RUN('db.model.db.synchronizeFields.insert.exception', DTArrayObject::create()
+                        ->add_aKeyValue(DTKeyValue::create()
+                            ->set_sKey('sTableName')
+                            ->set_sValue($this->sTableName))
+                        ->add_aKeyValue(DTKeyValue::create()
+                            ->set_sKey('oException')
+                            ->set_sValue($oException)));
+                    \MVC\Error::EXCEPTION($oException);
+
+                    return false;
+                }
+            }
+        }
+
+        UPDATE:
+        {
 
             $sSql = '';
 
             foreach ($this->getFieldArray() as $sKey => $sValue)
             {
-                $sSql.= "ALTER TABLE `" . $this->sTableName . "` CHANGE  `" . $sKey . "`\n`" . $sKey . "` " . $sValue . ";\n";
+                $sSql .= "ALTER TABLE `" . $this->sTableName . "` CHANGE  `" . $sKey . "`\n`" . $sKey . "` " . $sValue . ";\n";
             }
 
             try
             {
-                $this->oDbPDO->query ($sSql);
+                $this->oDbPDO->query($sSql);
             }
             catch (\Exception $oException)
             {
-                Event::RUN(
-                    'db.model.db.synchronizeFields.update.exception',
-                    DTArrayObject::create()
-                        ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                        ->add_aKeyValue(
-                            DTKeyValue::create()
-                                ->set_sKey('oException')
-                                ->set_sValue($oException)
-                        )
-                );
+                Event::RUN('db.model.db.synchronizeFields.update.exception', DTArrayObject::create()
+                    ->add_aKeyValue(DTKeyValue::create()
+                        ->set_sKey('sTableName')
+                        ->set_sValue($this->sTableName))
+                    ->add_aKeyValue(DTKeyValue::create()
+                        ->set_sKey('oException')
+                        ->set_sValue($oException)));
                 \MVC\Error::EXCEPTION($oException);
 
                 return false;
             }
 
-		}
-			
-		return true;
-	}
+        }
 
-	/**
-	 * returns settings array from extending child class, if set
-	 * @return array
-	 */
+        return true;
+    }
+
+    /**
+     * returns settings array from extending child class, if set
+     * @return array
+     */
     protected function getFieldArray()
-	{
-        return (isset($this->aField)) ? $this->aField : array();
-	}
+    {
+        return (isset($this->aField))
+            ? $this->aField
+            : array();
+    }
 
     /**
      * @param string $sFieldName
-     * @param bool $bAvoidReserved
+     * @param bool   $bAvoidReserved
      * @return array|mixed
      */
     public function getFieldInfo($sFieldName = '', $bAvoidReserved = true)
     {
         $aResult = array();
         $sSql = "SHOW FIELDS FROM " . $this->sTableName;
-        ('' !== $sFieldName) ? $sSql.= " where Field =:sFieldName" : false;
+        ('' !== $sFieldName)
+            ? $sSql .= " where Field =:sFieldName"
+            : false;
 
         $oStmt = $this->oDbPDO->prepare($sSql);
-        ('' !== $sFieldName) ? $oStmt->bindValue(':sFieldName', $sFieldName, \PDO::PARAM_STR) : false;
+        ('' !== $sFieldName)
+            ? $oStmt->bindValue(':sFieldName', $sFieldName, \PDO::PARAM_STR)
+            : false;
 
         $oStmt->execute();
-        $aFieldName = ('' === $sFieldName) ? $oStmt->fetchAll(\PDO::FETCH_ASSOC) : $oStmt->fetch(\PDO::FETCH_ASSOC);
+        $aFieldName = ('' === $sFieldName)
+            ? $oStmt->fetchAll(\PDO::FETCH_ASSOC)
+            : $oStmt->fetch(\PDO::FETCH_ASSOC);
 
         if ('' === $sFieldName)
         {
@@ -728,7 +685,10 @@ class Db
         // add PHP Type equivalents
         foreach ($aResult as $sKey => $sValue)
         {
-            $sType = preg_replace('/[^a-zA-Z]+/', '', trim(strtolower($sValue['Type'])));
+            // remove brackets content
+            $sType = trim(preg_replace('/\([\s\S]+?\)/', '', trim(strtolower($sValue['Type']))));
+            // isolate char 
+            $sType = preg_replace('/[^a-zA-Z]+/', '', $sType);
 
             if (isset(self::$aSqlType[$sType]))
             {
@@ -757,31 +717,36 @@ class Db
             WHERE 1
             AND TABLE_NAME=:sTableName
             ";
-        ('' !== $sFieldName) ? $sSql.= "AND COLUMN_NAME=:sFieldName\n" : false;
-        $sSql.= ";";
+        ('' !== $sFieldName)
+            ? $sSql .= "AND COLUMN_NAME=:sFieldName\n"
+            : false;
+        $sSql .= ";";
 
         $oStmt = $this->oDbPDO->prepare($sSql);
         $oStmt->bindValue(':sTableName', $this->sTableName, \PDO::PARAM_STR);
-        ('' !== $sFieldName) ? $oStmt->bindValue(':sFieldName', $sFieldName, \PDO::PARAM_STR) : false;
+        ('' !== $sFieldName)
+            ? $oStmt->bindValue(':sFieldName', $sFieldName, \PDO::PARAM_STR)
+            : false;
 
         try
         {
             $oStmt->execute();
-            $aConstraint = ('' === $sFieldName) ? $oStmt->fetchAll(\PDO::FETCH_ASSOC) : $oStmt->fetch(\PDO::FETCH_ASSOC);
-            (false === is_array($aConstraint)) ? $aConstraint = array() : false;
+            $aConstraint = ('' === $sFieldName)
+                ? $oStmt->fetchAll(\PDO::FETCH_ASSOC)
+                : $oStmt->fetch(\PDO::FETCH_ASSOC);
+            (false === is_array($aConstraint))
+                ? $aConstraint = array()
+                : false;
         }
         catch (\Exception $oException)
         {
-            Event::RUN(
-                'db.model.db.getConstraintInfo.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
+            Event::RUN('db.model.db.getConstraintInfo.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
             Error::EXCEPTION($oException);
         }
 
@@ -795,20 +760,22 @@ class Db
      * @return mixed|string
      */
     protected static function createTableName($sString = '')
-	{
-        ('' === $sString) ? $sString = __CLASS__ : false;
-		$sString = str_replace('\\', '', $sString);
+    {
+        ('' === $sString)
+            ? $sString = __CLASS__
+            : false;
+        $sString = str_replace('\\', '', $sString);
         $sString = str_replace('_', '', $sString);
 
-		return $sString;
-	}
+        return $sString;
+    }
 
     /**
      * @param TableDataType|null $oTableDataType
      * @return TableDataType
      * @throws \ReflectionException
      */
-    public function create (TableDataType $oTableDataType = null)
+    public function create(TableDataType $oTableDataType = null)
     {
         if (null === $oTableDataType)
         {
@@ -823,63 +790,75 @@ class Db
 
         foreach ($aField as $iCnt => $sField)
         {
-            if ('id' === $sField){continue;}
-            $sSql.= "`" . $sField . "`,";
-            $sSqlExplain.= "`" . $sField . "`,";;
+            if ('id' === $sField)
+            {
+                continue;
+            }
+            $sSql .= "`" . $sField . "`,";
+            $sSqlExplain .= "`" . $sField . "`,";;
         }
 
         $sSql = substr($sSql, 0, -1);
-        $sSql.= "\n) VALUES (\n";
-        $sSqlExplain.= ") VALUES (";;
+        $sSql .= "\n) VALUES (\n";
+        $sSqlExplain .= ") VALUES (";;
 
         foreach ($aField as $iCnt => $sField)
         {
-            if ('id' === $sField){continue;}
-            $sSql.= ":" . $sField . ",";
+            if ('id' === $sField)
+            {
+                continue;
+            }
+            $sSql .= ":" . $sField . ",";
 
             $sMethod = 'get_' . $sField;
             $sValue = $oTableDataType->$sMethod();
-            $sSqlExplain.= "'" . $sValue . "',";
+            $sSqlExplain .= "'" . $sValue . "',";
         }
 
         $sSqlExplain = substr($sSqlExplain, 0, -1);
         $sSql = substr($sSql, 0, -1);
-        $sSql.= "\n);\n";
-        $sSqlExplain.= "); ";
+        $sSql .= "\n);\n";
+        $sSqlExplain .= "); ";
 
-        Event::RUN(
-            'db.model.db.create.sql',
-            DTArrayObject::create()
-                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                ->add_aKeyValue(
-                    DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
-                )
-        );
+        Event::RUN('db.model.db.create.sql', DTArrayObject::create()
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sTableName')
+                ->set_sValue($this->sTableName))
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sSqlExplain')
+                ->set_sValue($sSqlExplain)));
 
         $oStmt = $this->oDbPDO->prepare($sSql);
 
         // BINDINGS
         foreach ($aField as $iCnt => $sField)
         {
-            if ('id' === $sField){continue;}
+            if ('id' === $sField)
+            {
+                continue;
+            }
 
             $sMethod = 'get_' . $sField;
             $sValue = $oTableDataType->$sMethod();
             $sType = gettype($sValue);
 
-            ('boolean' === $sType) ? $sDataType = \PDO::PARAM_ : false;
-            ('integer' === $sType) ? $sDataType = \PDO::PARAM_INT : false;
-            ('null' === $sType) ? $sDataType = \PDO::PARAM_NULL : false;
-            ('string' === $sType) ? $sDataType = \PDO::PARAM_STR : false;
-            (false === isset($sDataType)) ? $sDataType = \PDO::PARAM_STR : false;
+            ('boolean' === $sType)
+                ? $sDataType = \PDO::PARAM_
+                : false;
+            ('integer' === $sType)
+                ? $sDataType = \PDO::PARAM_INT
+                : false;
+            ('null' === $sType)
+                ? $sDataType = \PDO::PARAM_NULL
+                : false;
+            ('string' === $sType)
+                ? $sDataType = \PDO::PARAM_STR
+                : false;
+            (false === isset($sDataType))
+                ? $sDataType = \PDO::PARAM_STR
+                : false;
 
-            $oStmt->bindValue(
-                ':' . $sField,
-                $sValue,
-                $sDataType
-            );
+            $oStmt->bindValue(':' . $sField, $sValue, $sDataType);
         }
 
         try
@@ -891,16 +870,13 @@ class Db
         }
         catch (\Exception $oException)
         {
-            Event::RUN(
-                'db.model.db.create.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
+            Event::RUN('db.model.db.create.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
             Error::EXCEPTION($oException);
         }
 
@@ -913,20 +889,20 @@ class Db
      * @param DTArrayObject $oDTArrayObjectOption
      * @return DB\DataType\DB\TableDataType[]
      * @example
-        * $oDTArrayObject = \MVC\DataType\DTArrayObject::create()
-            * ->add_aKeyValue(
-                * \MCC\DataType\DTKeyValue::create()
-                    * ->set_sKey(DTLCPModelTableLCP::getPropertyName_deliverable())
-                    * ->set_mOptional1('=')
-                    * ->set_sValue(1)
-            * )
-            * ->add_aKeyValue(
-                * \MCC\DataType\DTKeyValue::create()
-                    * ->set_sKey(DTLCPModelTableLCP::getPropertyName_dateTimeDelivered())
-                    * ->set_mOptional1('=')
-                    * ->set_sValue('0000-00-00 00:00:00')
-        * );
-        * $oDB->getArrayOfDTObjectsOnKeyHasValue($oDTDBArrayObject);
+     * $oDTArrayObject = \MVC\DataType\DTArrayObject::create()
+     * ->add_aKeyValue(
+     * \MCC\DataType\DTKeyValue::create()
+     * ->set_sKey(DTLCPModelTableLCP::getPropertyName_deliverable())
+     * ->set_mOptional1('=')
+     * ->set_sValue(1)
+     * )
+     * ->add_aKeyValue(
+     * \MCC\DataType\DTKeyValue::create()
+     * ->set_sKey(DTLCPModelTableLCP::getPropertyName_dateTimeDelivered())
+     * ->set_mOptional1('=')
+     * ->set_sValue('0000-00-00 00:00:00')
+     * );
+     * $oDB->getArrayOfDTObjectsOnKeyHasValue($oDTDBArrayObject);
      */
 
     /**
@@ -938,7 +914,8 @@ class Db
     public function retrieve(DTArrayObject $oDTArrayObject = null, DTArrayObject $oDTArrayObjectOption = null)
     {
         $aObject = array();
-        $sDTClassName = Request::getInstance()->getModule() . '\DataType\\' . $this->getGenerateDataTypeClassName();
+        $sDTClassName = Request::getInstance()
+                            ->getModule() . '\DataType\\' . $this->getGenerateDataTypeClassName();
         $aPossibleToken = array('=', '<', '<=', '>', '>=', 'LIKE', '!=');
 
         $sSql = "SELECT * FROM `" . $this->sTableName . "` \nWHERE  1\n";
@@ -949,15 +926,17 @@ class Db
         {
             foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
             {
-                (empty($oDTKeyValue->get_mOptional1())) ? $oDTKeyValue->set_mOptional1('=') : false;
+                (empty($oDTKeyValue->get_mOptional1()))
+                    ? $oDTKeyValue->set_mOptional1('=')
+                    : false;
 
                 if (false === in_array(strtoupper($oDTKeyValue->get_mOptional1()), $aPossibleToken))
                 {
                     return new $sDTClassName();
                 }
 
-                $sSql.= "\nAND `" . $oDTKeyValue->get_sKey() . "` " . $oDTKeyValue->get_mOptional1() . " :" . $oDTKeyValue->get_sKey();
-                $sSqlExplain.= "AND `" . $oDTKeyValue->get_sKey() . "` " . $oDTKeyValue->get_mOptional1() . " '" . $oDTKeyValue->get_sValue() . "' ";
+                $sSql .= "\nAND `" . $oDTKeyValue->get_sKey() . "` " . $oDTKeyValue->get_mOptional1() . " :" . $oDTKeyValue->get_sKey();
+                $sSqlExplain .= "AND `" . $oDTKeyValue->get_sKey() . "` " . $oDTKeyValue->get_mOptional1() . " '" . $oDTKeyValue->get_sValue() . "' ";
             }
         }
 
@@ -966,19 +945,20 @@ class Db
         {
             foreach ($oDTArrayObjectOption->get_aKeyValue() as $iKey => $oDTKeyValue)
             {
-                $sSql.= "\n" . $oDTKeyValue->get_sValue() . " \n";
-                $sSqlExplain.= $oDTKeyValue->get_sValue() . ' ';
+                $sSql .= "\n" . $oDTKeyValue->get_sValue() . " \n";
+                $sSqlExplain .= $oDTKeyValue->get_sValue() . ' ';
             }
         }
 
         $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
 
-        Event::RUN(
-            'db.model.db.retrieve.sql',
-            DTArrayObject::create()
-                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sSqlExplain')->set_sValue($sSqlExplain))
-        );
+        Event::RUN('db.model.db.retrieve.sql', DTArrayObject::create()
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sTableName')
+                ->set_sValue($this->sTableName))
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sSqlExplain')
+                ->set_sValue($sSqlExplain)));
 
         $oStmt = $this->oDbPDO->prepare($sSql);
 
@@ -986,17 +966,23 @@ class Db
         foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
         {
             $iPdoParam = 0;
-            ('integer' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_INT : false;
-            ('string' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR : false;
-            ('object' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR: false;
-            ('boolean' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_BOOL : false;
-            ('null' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_NULL : false;
+            ('integer' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_INT
+                : false;
+            ('string' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_STR
+                : false;
+            ('object' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_STR
+                : false;
+            ('boolean' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_BOOL
+                : false;
+            ('null' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_NULL
+                : false;
 
-            $oStmt->bindValue(
-                ':' . $oDTKeyValue->get_sKey(),
-                $oDTKeyValue->get_sValue(),
-                $iPdoParam
-            );
+            $oStmt->bindValue(':' . $oDTKeyValue->get_sKey(), $oDTKeyValue->get_sValue(), $iPdoParam);
         }
 
         try
@@ -1013,7 +999,9 @@ class Db
                 {
                     $sGetter = 'get_' . $sKey;
                     $sSetter = 'set_' . $sKey;
-                    $sHasToBeType = (method_exists($oObject, $sGetter)) ? gettype($oObject->$sGetter()) : 'string';
+                    $sHasToBeType = (method_exists($oObject, $sGetter))
+                        ? gettype($oObject->$sGetter())
+                        : 'string';
                     settype($sValue, $sHasToBeType);
 
                     if (true === method_exists($oObject, $sSetter))
@@ -1027,16 +1015,13 @@ class Db
         }
         catch (\Exception $oException)
         {
-            Event::RUN(
-                'db.model.db.retrieve.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
+            Event::RUN('db.model.db.retrieve.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
             Error::EXCEPTION($oException);
         }
 
@@ -1051,7 +1036,8 @@ class Db
      */
     public function count(DTArrayObject $oDTArrayObject = null, DTArrayObject $oDTArrayObjectOption = null)
     {
-        $sDTClassName = Request::getInstance()->getModule() . '\DataType\\' . $this->getGenerateDataTypeClassName();
+        $sDTClassName = Request::getInstance()
+                            ->getModule() . '\DataType\\' . $this->getGenerateDataTypeClassName();
         $aPossibleToken = array('=', '<', '<=', '>', '>=', 'LIKE', '!=');
 
         $sSql = "SELECT COUNT(id) AS iAmount FROM `" . $this->sTableName . "` \nWHERE  1\n";
@@ -1062,15 +1048,17 @@ class Db
         {
             foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
             {
-                (empty($oDTKeyValue->get_mOptional1())) ? $oDTKeyValue->set_mOptional1('=') : false;
+                (empty($oDTKeyValue->get_mOptional1()))
+                    ? $oDTKeyValue->set_mOptional1('=')
+                    : false;
 
                 if (false === in_array(strtoupper($oDTKeyValue->get_mOptional1()), $aPossibleToken))
                 {
                     return new $sDTClassName();
                 }
 
-                $sSql.= "\nAND `" . $oDTKeyValue->get_sKey() . "` " . $oDTKeyValue->get_mOptional1() . " :" . $oDTKeyValue->get_sKey();
-                $sSqlExplain.= "AND `" . $oDTKeyValue->get_sKey() . "` " . $oDTKeyValue->get_mOptional1() . " '" . $oDTKeyValue->get_sValue() . "' ";
+                $sSql .= "\nAND `" . $oDTKeyValue->get_sKey() . "` " . $oDTKeyValue->get_mOptional1() . " :" . $oDTKeyValue->get_sKey();
+                $sSqlExplain .= "AND `" . $oDTKeyValue->get_sKey() . "` " . $oDTKeyValue->get_mOptional1() . " '" . $oDTKeyValue->get_sValue() . "' ";
             }
         }
 
@@ -1079,23 +1067,20 @@ class Db
         {
             foreach ($oDTArrayObjectOption->get_aKeyValue() as $iKey => $oDTKeyValue)
             {
-                $sSql.= "\n" . $oDTKeyValue->get_sValue() . " \n";
-                $sSqlExplain.= $oDTKeyValue->get_sValue() . ' ';
+                $sSql .= "\n" . $oDTKeyValue->get_sValue() . " \n";
+                $sSqlExplain .= $oDTKeyValue->get_sValue() . ' ';
             }
         }
 
         $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
 
-        Event::RUN(
-            'db.model.db.count.sql',
-            DTArrayObject::create()
-                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                ->add_aKeyValue(
-                    DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
-                )
-        );
+        Event::RUN('db.model.db.count.sql', DTArrayObject::create()
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sTableName')
+                ->set_sValue($this->sTableName))
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sSqlExplain')
+                ->set_sValue($sSqlExplain)));
 
         $oStmt = $this->oDbPDO->prepare($sSql);
 
@@ -1105,17 +1090,23 @@ class Db
             foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
             {
                 $iPdoParam = 0;
-                ('integer' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_INT : false;
-                ('string' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR : false;
-                ('object' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR: false;
-                ('boolean' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_BOOL : false;
-                ('null' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_NULL : false;
+                ('integer' === gettype($oDTKeyValue->get_sValue()))
+                    ? $iPdoParam = \PDO::PARAM_INT
+                    : false;
+                ('string' === gettype($oDTKeyValue->get_sValue()))
+                    ? $iPdoParam = \PDO::PARAM_STR
+                    : false;
+                ('object' === gettype($oDTKeyValue->get_sValue()))
+                    ? $iPdoParam = \PDO::PARAM_STR
+                    : false;
+                ('boolean' === gettype($oDTKeyValue->get_sValue()))
+                    ? $iPdoParam = \PDO::PARAM_BOOL
+                    : false;
+                ('null' === gettype($oDTKeyValue->get_sValue()))
+                    ? $iPdoParam = \PDO::PARAM_NULL
+                    : false;
 
-                $oStmt->bindValue(
-                    ':' . $oDTKeyValue->get_sKey(),
-                    $oDTKeyValue->get_sValue(),
-                    $iPdoParam
-                );
+                $oStmt->bindValue(':' . $oDTKeyValue->get_sKey(), $oDTKeyValue->get_sValue(), $iPdoParam);
             }
         }
 
@@ -1123,20 +1114,17 @@ class Db
         {
             $oStmt->execute();
             $aFetchAll = $oStmt->fetchAll(\PDO::FETCH_ASSOC);
-            $iAmount = (int) current($aFetchAll)['iAmount'];
+            $iAmount = (int)current($aFetchAll)['iAmount'];
         }
         catch (\Exception $oException)
         {
-            Event::RUN(
-                'db.model.db.count.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
+            Event::RUN('db.model.db.count.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
             Error::EXCEPTION($oException);
         }
 
@@ -1153,7 +1141,7 @@ class Db
      * @return bool
      * @throws \ReflectionException
      */
-    public function update (TableDataType $oTableDataType = null, DTArrayObject $oDTArrayObjectSet = null, DTArrayObject $oDTArrayObjectWhere = null)
+    public function update(TableDataType $oTableDataType = null, DTArrayObject $oDTArrayObjectSet = null, DTArrayObject $oDTArrayObjectWhere = null)
     {
         if (is_null($oTableDataType) || is_null($oDTArrayObjectSet))
         {
@@ -1161,27 +1149,27 @@ class Db
         }
 
         $sSql = "UPDATE `" . $this->sTableName . "` SET \n";
-        $sSqlExplain =  $sSql;
+        $sSqlExplain = $sSql;
 
         /**
-         * @var integer $iKey
+         * @var integer     $iKey
          * @var  DTKeyValue $oDTKeyValueSet
          */
         foreach ($oDTArrayObjectSet->get_aKeyValue() as $iKey => $oDTKeyValueSet)
         {
-            $sSql.= '`' . $oDTKeyValueSet->get_sKey() . '` = :' . $oDTKeyValueSet->get_sKey() . ",";
-            $sSqlExplain.= '`' . $oDTKeyValueSet->get_sKey() . '` = ' . "'" . $oDTKeyValueSet->get_sValue() . "',";
+            $sSql .= '`' . $oDTKeyValueSet->get_sKey() . '` = :' . $oDTKeyValueSet->get_sKey() . ",";
+            $sSqlExplain .= '`' . $oDTKeyValueSet->get_sKey() . '` = ' . "'" . $oDTKeyValueSet->get_sValue() . "',";
         }
 
-        $sSql = substr($sSql, 0,-1) . "\n";
-        $sSqlExplain = substr($sSqlExplain, 0,-1) . "\n";
+        $sSql = substr($sSql, 0, -1) . "\n";
+        $sSqlExplain = substr($sSqlExplain, 0, -1) . "\n";
 
         /**
          * default: where id = id
          */
         if (is_null($oDTArrayObjectWhere))
         {
-            $sWhere = "WHERE `id` = '" . (int) $oTableDataType->get_id() . "'\n";
+            $sWhere = "WHERE `id` = '" . (int)$oTableDataType->get_id() . "'\n";
         }
         else
         {
@@ -1189,44 +1177,47 @@ class Db
 
             foreach ($oDTArrayObjectWhere->get_aKeyValue() as $iKey => $oDTDBKeyValueWhere)
             {
-                $sWhere.= 'AND `' . $oDTDBKeyValueWhere->get_sKey() . '` = ' . "'" . $oDTDBKeyValueWhere->get_sValue() . "' \n";
+                $sWhere .= 'AND `' . $oDTDBKeyValueWhere->get_sKey() . '` = ' . "'" . $oDTDBKeyValueWhere->get_sValue() . "' \n";
             }
         }
 
-        $sSql.= $sWhere;
-        $sSqlExplain.= $sWhere;
+        $sSql .= $sWhere;
+        $sSqlExplain .= $sWhere;
         $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
-        Event::RUN(
-            'db.model.db.update.sql',
-            DTArrayObject::create()
-                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                ->add_aKeyValue(
-                    DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
-            )
-        );
+        Event::RUN('db.model.db.update.sql', DTArrayObject::create()
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sTableName')
+                ->set_sValue($this->sTableName))
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sSqlExplain')
+                ->set_sValue($sSqlExplain)));
 
         $oStmt = $this->oDbPDO->prepare($sSql);
 
         /**
-         * @var integer $iKey
+         * @var integer     $iKey
          * @var  DTKeyValue $oDTDBKeyValue
          */
         foreach ($oDTArrayObjectSet->get_aKeyValue() as $iKey => $oDTKeyValueSet)
         {
             $iPdoParam = 0;
-            ('integer' === gettype($oDTKeyValueSet->get_sValue())) ? $iPdoParam = \PDO::PARAM_INT : false;
-            ('string' === gettype($oDTKeyValueSet->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR : false;
-            ('object' === gettype($oDTKeyValueSet->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR: false;
-            ('boolean' === gettype($oDTKeyValueSet->get_sValue())) ? $iPdoParam = \PDO::PARAM_BOOL : false;
-            ('null' === gettype($oDTKeyValueSet->get_sValue())) ? $iPdoParam = \PDO::PARAM_NULL : false;
+            ('integer' === gettype($oDTKeyValueSet->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_INT
+                : false;
+            ('string' === gettype($oDTKeyValueSet->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_STR
+                : false;
+            ('object' === gettype($oDTKeyValueSet->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_STR
+                : false;
+            ('boolean' === gettype($oDTKeyValueSet->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_BOOL
+                : false;
+            ('null' === gettype($oDTKeyValueSet->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_NULL
+                : false;
 
-            $oStmt->bindValue(
-                ':' . $oDTKeyValueSet->get_sKey(),
-                $oDTKeyValueSet->get_sValue(),
-                $iPdoParam
-            );
+            $oStmt->bindValue(':' . $oDTKeyValueSet->get_sKey(), $oDTKeyValueSet->get_sValue(), $iPdoParam);
         }
 
         try
@@ -1235,17 +1226,15 @@ class Db
         }
         catch (\Exception $oException)
         {
-            Event::RUN(
-                'db.model.db.update.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
+            Event::RUN('db.model.db.update.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
             \MVC\Error::EXCEPTION($oException);
+
             return false;
         }
 
@@ -1257,7 +1246,7 @@ class Db
      * @return bool
      * @throws \ReflectionException
      */
-    public function delete (DTArrayObject $oDTArrayObject = null)
+    public function delete(DTArrayObject $oDTArrayObject = null)
     {
         if (is_null($oDTArrayObject))
         {
@@ -1266,29 +1255,26 @@ class Db
 
         $bDelete = false;
         $sSql = "DELETE FROM `" . $this->sTableName . "` WHERE 1\n";
-        $sSqlExplain =  $sSql;
+        $sSqlExplain = $sSql;
 
         /**
-         * @var integer $iKey
+         * @var integer     $iKey
          * @var  DTKeyValue $oDTKeyValue
          */
         foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
         {
-            $sSql.= 'AND `' . $oDTKeyValue->get_sKey() . '` = :' . $oDTKeyValue->get_sKey() . "\n";
-            $sSqlExplain.= 'AND `' . $oDTKeyValue->get_sKey() . '` = ' . "'" . $oDTKeyValue->get_sValue() . "'\n";
+            $sSql .= 'AND `' . $oDTKeyValue->get_sKey() . '` = :' . $oDTKeyValue->get_sKey() . "\n";
+            $sSqlExplain .= 'AND `' . $oDTKeyValue->get_sKey() . '` = ' . "'" . $oDTKeyValue->get_sValue() . "'\n";
         }
 
         $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
-        Event::RUN(
-            'db.model.db.delete.sql',
-            DTArrayObject::create()
-                ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                ->add_aKeyValue(
-                    DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
-                )
-        );
+        Event::RUN('db.model.db.delete.sql', DTArrayObject::create()
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sTableName')
+                ->set_sValue($this->sTableName))
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('sSqlExplain')
+                ->set_sValue($sSqlExplain)));
 
         $oStmt = $this->oDbPDO->prepare($sSql);
 
@@ -1296,17 +1282,23 @@ class Db
         foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
         {
             $iPdoParam = 0;
-            ('integer' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_INT : false;
-            ('string' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR : false;
-            ('object' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_STR: false;
-            ('boolean' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_BOOL : false;
-            ('null' === gettype($oDTKeyValue->get_sValue())) ? $iPdoParam = \PDO::PARAM_NULL : false;
+            ('integer' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_INT
+                : false;
+            ('string' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_STR
+                : false;
+            ('object' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_STR
+                : false;
+            ('boolean' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_BOOL
+                : false;
+            ('null' === gettype($oDTKeyValue->get_sValue()))
+                ? $iPdoParam = \PDO::PARAM_NULL
+                : false;
 
-            $oStmt->bindValue(
-                ':' . $oDTKeyValue->get_sKey(),
-                $oDTKeyValue->get_sValue(),
-                $iPdoParam
-            );
+            $oStmt->bindValue(':' . $oDTKeyValue->get_sKey(), $oDTKeyValue->get_sValue(), $iPdoParam);
         }
 
         try
@@ -1315,16 +1307,13 @@ class Db
         }
         catch (\Exception $oException)
         {
-            Event::RUN(
-                'db.model.db.delete.exception',
-                DTArrayObject::create()
-                    ->add_aKeyValue(DTKeyValue::create()->set_sKey('sTableName')->set_sValue($this->sTableName))
-                    ->add_aKeyValue(
-                        DTKeyValue::create()
-                            ->set_sKey('oException')
-                            ->set_sValue($oException)
-                    )
-            );
+            Event::RUN('db.model.db.delete.exception', DTArrayObject::create()
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('sTableName')
+                    ->set_sValue($this->sTableName))
+                ->add_aKeyValue(DTKeyValue::create()
+                    ->set_sKey('oException')
+                    ->set_sValue($oException)));
             Error::EXCEPTION($oException);
 
             return false;
@@ -1336,7 +1325,7 @@ class Db
     /**
      * auto delete caches
      */
-	public function __destruct()
+    public function __destruct()
     {
         \Cachix::autoDeleteCache();
     }
