@@ -884,36 +884,51 @@ class Db
     }
 
     /**
-     * Simple key{token}value Getter
-     * @param DTArrayObject $oDTArrayObject
-     * @param DTArrayObject $oDTArrayObjectOption
-     * @return DB\DataType\DB\TableDataType[]
-     * @example
-     * $oDTArrayObject = \MVC\DataType\DTArrayObject::create()
-     * ->add_aKeyValue(
-     * \MCC\DataType\DTKeyValue::create()
-     * ->set_sKey(DTLCPModelTableLCP::getPropertyName_deliverable())
-     * ->set_mOptional1('=')
-     * ->set_sValue(1)
-     * )
-     * ->add_aKeyValue(
-     * \MCC\DataType\DTKeyValue::create()
-     * ->set_sKey(DTLCPModelTableLCP::getPropertyName_dateTimeDelivered())
-     * ->set_mOptional1('=')
-     * ->set_sValue('0000-00-00 00:00:00')
-     * );
-     * $oDB->getArrayOfDTObjectsOnKeyHasValue($oDTDBArrayObject);
+     * @param int  $iId
+     * @param null $oDTDBArrayObject
+     * @param null $oDTArrayObjectOption
+     * @return \DB\DataType\DB\TableDataType[]
+     * @throws \ReflectionException
      */
+    public function get($iId = 0, $oDTDBArrayObject = null, $oDTArrayObjectOption = null)
+    {
+        if (null === $oDTArrayObjectOption)
+        {
+            $oDTArrayObjectOption = DTArrayObject::create()
+                ->add_aKeyValue(
+                    DTKeyValue::create()
+                        ->set_sValue('ORDER BY id ASC')
+                );
+        }
+
+        if (null === $oDTDBArrayObject)
+        {
+            // Alle Datensätze
+            $oDTDBArrayObject = DTArrayObject::create();
+
+            // ein bestimmter datensatz anhand id
+            if ($iId > 0)
+            {
+                $oDTDBArrayObject = DTArrayObject::create()
+                    ->add_aKeyValue(
+                        DTKeyValue::create()->set_sKey('id')->set_mOptional1('=')->set_sValue($iId));
+            }
+        }
+
+        /** @var \DB\DataType\DB\TableDataType[] $aTableDataType */
+        $aTableDataType = $this->retrieve($oDTDBArrayObject, $oDTArrayObjectOption);
+
+        return $aTableDataType;
+    }
 
     /**
-     * @param DTArrayObject|null $oDTArrayObject
-     * @param DTArrayObject|null $oDTArrayObjectOption
-     * @return array
-     * @throws \ReflectionException
+     * @param \MVC\DataType\DTArrayObject|null $oDTArrayObject
+     * @param \MVC\DataType\DTArrayObject|null $oDTArrayObjectOption
+     * @return \DB\DataType\DB\TableDataType[]|mixed
      */
     public function retrieve(DTArrayObject $oDTArrayObject = null, DTArrayObject $oDTArrayObjectOption = null)
     {
-        $aObject = array();
+        $aTableDataType = array();
         $sDTClassName = Request::getInstance()
                             ->getModule() . '\DataType\\' . $this->getGenerateDataTypeClassName();
         $aPossibleToken = array('=', '<', '<=', '>', '>=', 'LIKE', '!=');
@@ -1010,7 +1025,7 @@ class Db
                     }
                 }
 
-                $aObject[] = $oObject;
+                $aTableDataType[] = $oObject;
             }
         }
         catch (\Exception $oException)
@@ -1025,7 +1040,8 @@ class Db
             Error::EXCEPTION($oException);
         }
 
-        return $aObject;
+        /** @var \DB\DataType\DB\TableDataType[] $aTableDataType */
+        return $aTableDataType;
     }
 
     /**
@@ -1132,13 +1148,12 @@ class Db
         return $iAmount;
     }
 
-
     /**
      * UPDATE table SET x = y WHERE id
      * @param TableDataType|null $oTableDataType
      * @param DTArrayObject|null $oDTArrayObjectSet
      * @param DTArrayObject|null $oDTArrayObjectWhere
-     * @return bool
+     * @return bool success
      * @throws \ReflectionException
      */
     public function update(TableDataType $oTableDataType = null, DTArrayObject $oDTArrayObjectSet = null, DTArrayObject $oDTArrayObjectWhere = null)
@@ -1239,6 +1254,30 @@ class Db
         }
 
         return true;
+    }
+
+    /**
+     * updates a single, concrete dataset (a tupel)
+     * @param \DB\DataType\DB\TableDataType $oTableDataType
+     * @return bool success
+     * @throws \ReflectionException
+     */
+    public function updateTupel(TableDataType $oTableDataType)
+    {
+        $oDTArrayObject = DTArrayObject::create();
+
+        foreach ($oTableDataType->getPropertyArray() as $sKey => $mProperty)
+        {
+            $oDTKeyValue = \MVC\DataType\DTKeyValue::create()
+                ->set_sKey($sKey)
+                ->set_mOptional1('=')
+                ->set_sValue($mProperty);
+            $oDTArrayObject->add_aKeyValue($oDTKeyValue);
+        }
+
+        $bUpdate = $this->update($oTableDataType, $oDTArrayObject);
+
+        return $bUpdate;
     }
 
     /**
