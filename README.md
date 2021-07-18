@@ -134,7 +134,8 @@ $aDbConfig = array(
 );
 ~~~
 
-### 3.2. Explained <a name="3-2"></a
+
+### 3.2. Explained <a name="3-2"></a>
 
 _Fields_  
 ~~~php
