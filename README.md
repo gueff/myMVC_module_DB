@@ -103,7 +103,7 @@ class TableFoo extends \DB\Model\Db
 
 _Usage_  
 ~~~php
-$oTableUrl = new TableUrl($aDbConfig);
+$oTableFoo = new TableFoo($aDbConfig);
 ~~~
 
 _Db Config_  
