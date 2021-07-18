@@ -14,9 +14,9 @@
 
 - Linux
 - php 7
-    - PDO
+	- PDO
 - [myMVC >= 1.3.0](https://github.com/gueff/myMVC/releases/tag/1.3.0)
-        
+
 
 ---
 
@@ -38,7 +38,7 @@ as a Representation of the DB Table.
 Create the Folder `Model/DB`.
 There, create the file `TableFoo.php` as follows.
 
-_Most simple_  
+_Most simple_
 ~~~php
 <?php
 
@@ -101,12 +101,12 @@ class TableFoo extends \DB\Model\Db
 
 ---
 
-_Usage_  
+_Usage_
 ~~~php
 $oTableFoo = new TableFoo($aDbConfig);
 ~~~
 
-_Db Config_  
+_Db Config_
 ~~~php
 $aDbConfig = array(
     'db' => array(
@@ -137,7 +137,7 @@ $aDbConfig = array(
 
 ### 3.2. Explained <a name="3-2"></a>
 
-_Fields_  
+_Fields_
 ~~~php
 /**
  * @var array
@@ -155,7 +155,28 @@ protected $aFields = array(
 ~~~
 
 
-_`count`_  
+_`create` (INSERT)_    
+therefore an object of its related Datatype must be instaciated and given to the method `create`. Here e.g. with Datatype "DTMandosModelDBTableUser" to TableClass "modules/Mandos/Model/DB/TableUser":
+~~~php
+// inside TableClass:
+$this->create(DTMandosModelDBTableUser::create()
+    ->set_id(1)
+    ->set_id_Status(1)
+    ->set_id_Group(1)
+    ->set_id_UserAdmin(1)
+    ->set_gender('male')
+    ->set_name('')
+    ->set_pass('$2y$10$a8znPSGLJVKqKHbKi9u8ee7Vc67CeRAHAK2cd1MQX3etm7fdOkRH6') # test
+    ->set_firstname('Portal')
+    ->set_lastname('Admin')
+    ->set_email('portal.admin@mediafinanz.de')
+    ->set_timezone('Europe/Berlin')
+    ->set_description('darf ClientAdmin anlegen')
+    ->set_stampChange($sNow)
+    ->set_stampCreate($sNow));
+~~~
+
+_`count`_
 ~~~php
 // Amount of all Datasets
 $iAmount = $this->count();
@@ -172,7 +193,7 @@ $iAmount = $this->count(
 );
 ~~~
 
-_`get`_  
+_`get`_
 ~~~php
 // get all Datasets
 $aDataType = $this->get();
@@ -220,7 +241,7 @@ $aDataType = $this->get(
 );
 ~~~
 
-_`retrieve`_  
+_`retrieve`_
 ~~~php
 // get specific Datasets
 $aDataType = $this->retrieve(
@@ -228,7 +249,7 @@ $aDataType = $this->retrieve(
     ->add_aKeyValue(
         DTKeyValue::create()
           ->set_sKey('stampChange')
-          ->set_mOptional1('=')
+          ->set_mOptional1('LIKE')
           ->set_sValue('2021-06-19')
     ); 
 );
@@ -239,7 +260,7 @@ $aDataType = $this->retrieve(
     ->add_aKeyValue(
         DTKeyValue::create()
           ->set_sKey('stampChange')
-          ->set_mOptional1('=')
+          ->set_mOptional1('LIKE')
           ->set_sValue('2021-06-19')
     ),
   DTArrayObject::create()
@@ -250,8 +271,57 @@ $aDataType = $this->retrieve(
 );
 ~~~
 
+_`updateTupel`_
+~~~php
+// deliver the appropriate (modified) DataType Object to the method
+$bSuccess = $this->updateTupel($oTableDataType);
+~~~
+- the equivalent dataset tupel with object's `id` will be updated.
 
-_`SQL`_    
+_`update`_
+~~~php
+$bSuccess = $this->update(
+	$oTableDataType,
+	// set
+	DTArrayObject::create()
+    	->add_aKeyValue(
+        	DTKeyValue::create()
+        	->set_key('stampChange)
+            ->set_sValue('2021-06-19 00:00:00')
+    ),
+    // where
+	DTArrayObject::create()
+    	->add_aKeyValue(
+        	DTKeyValue::create()
+        	->set_key('stampChange)
+        	->set_mOptional1('<')
+            ->set_sValue('2021-06-19 00:00:00')
+    ),
+);
+~~~
+
+_`deleteTupel`_
+~~~php
+// deliver the appropriate DataType Object to the method
+$bSuccess = $this->delete($oTableDataType);
+~~~
+
+_`delete`_
+~~~php
+$bSuccess = $this->delete(
+	// set
+	DTArrayObject::create()
+    	->add_aKeyValue(
+        	DTKeyValue::create()
+        	->set_key('stampChange)
+            ->set_sValue('2021-06-19 00:00:00')
+    )
+);
+~~~
+
+---
+
+_`SQL`_
 ~~~php
 /**
 	* @param DTLCPModelTableLCP $oDTLCPModelTableLCP
@@ -271,29 +341,6 @@ public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
 	return $aResult;
 }
 ~~~
-
-_`create` (INSERT)_    
-therefore an object of its related Datatype must be instaciated and given to the method `create`. Here e.g. with Datatype "DTMandosModelDBTableUser" to TableClass "modules/Mandos/Model/DB/TableUser":  
-~~~php
-// inside TableClass:
-$this->create(DTMandosModelDBTableUser::create()
-    ->set_id(1)
-    ->set_id_Status(1)
-    ->set_id_Group(1)
-    ->set_id_UserAdmin(1)
-    ->set_gender('male')
-    ->set_name('')
-    ->set_pass('$2y$10$a8znPSGLJVKqKHbKi9u8ee7Vc67CeRAHAK2cd1MQX3etm7fdOkRH6') # test
-    ->set_firstname('Portal')
-    ->set_lastname('Admin')
-    ->set_email('portal.admin@mediafinanz.de')
-    ->set_timezone('Europe/Berlin')
-    ->set_description('darf ClientAdmin anlegen')
-    ->set_stampChange($sNow)
-    ->set_stampCreate($sNow));
-~~~
-
-
 ## 4. Events <a name="4"></a>
 
 ~~~

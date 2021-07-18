@@ -1284,6 +1284,22 @@ class Db
     }
 
     /**
+     * @param \DB\DataType\DB\TableDataType $oTableDataType
+     * @return bool success
+     * @throws \ReflectionException
+     */
+    public function deleteTupel(TableDataType $oTableDataType)
+    {
+        $bUpdate = $this->delete(DTArrayObject::create()
+            ->add_aKeyValue(DTKeyValue::create()
+                ->set_sKey('id')
+                ->set_sValue($oTableDataType->get_id())
+            ));
+
+        return $bUpdate;
+    }
+
+    /**
      * @param DTArrayObject|null $oDTArrayObject
      * @return bool
      * @throws \ReflectionException
