@@ -10,7 +10,7 @@
 ---
 
 
-### 1. Requirements <a name="1"></a>
+### 1. Requirements <a id="1"></a>
 
 - Linux
 - php 7
@@ -21,16 +21,16 @@
 ---
 
 
-## 2. Repository <a name="2"></a>
+## 2. Repository <a id="2"></a>
 
 
 - https://github.com/gueff/myMVC_module_DB
 
 
 
-## 3. Creation <a name="2"></a>
+## 3. Creation <a id="2"></a>
 
-### 3.1. Example <a name="3-1"></a
+### 3.1. Example <a id="3-1"></a
 
 _PHP Class `Model/DB/TableFoo.php`_  
 as a Representation of the DB Table.
@@ -134,7 +134,7 @@ $aDbConfig = array(
 );
 ~~~
 
-### 3.2. Explained <a name="3-2"></a
+### 3.2. Explained <a id="3-2"></a
 
 _Fields_  
 ~~~php
@@ -293,7 +293,7 @@ $this->create(DTMandosModelDBTableUser::create()
 ~~~
 
 
-## 4. Events <a name="4"></a>
+## 4. Events <a id="4"></a>
 
 ~~~
 db.model.db.setSqlLoggingState.exception
