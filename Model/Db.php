@@ -687,7 +687,7 @@ class Db
         {
             // remove brackets content
             $sType = trim(preg_replace('/\([\s\S]+?\)/', '', trim(strtolower($sValue['Type']))));
-            // isolate char 
+            // isolate char
             $sType = preg_replace('/[^a-zA-Z]+/', '', $sType);
 
             if (isset(self::$aSqlType[$sType]))
@@ -1192,7 +1192,10 @@ class Db
 
             foreach ($oDTArrayObjectWhere->get_aKeyValue() as $iKey => $oDTDBKeyValueWhere)
             {
-                $sWhere .= 'AND `' . $oDTDBKeyValueWhere->get_sKey() . '` = ' . "'" . $oDTDBKeyValueWhere->get_sValue() . "' \n";
+                $sWhere .= 'AND `' . $oDTDBKeyValueWhere->get_sKey() . '` '
+                           . ((true === empty($oDTDBKeyValueWhere->get_mOptional1())) ? '=' : $oDTDBKeyValueWhere->get_mOptional1())
+                           . "'" . $oDTDBKeyValueWhere->get_sValue()
+                           . "' \n";
             }
         }
 
