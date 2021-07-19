@@ -50,6 +50,7 @@ use MVC\DataType\DTKeyValue;
 class TableFoo extends \DB\Model\Db
 {	
     /**
+     * no need to declare field `id` - this will be always declared automatically
      * @var array 
      */
     protected $aFields = array(
@@ -92,11 +93,12 @@ class TableFoo extends \DB\Model\Db
 }
 ~~~
 
-- creates the Table "TableFoo"
-- Table has fields "hash", "dateTimeDelivered"
-- generates a DataType Class "DataType/DTTableFoo.php" in the Module where the TableFoo resides
+- creates the Table `TableFoo`
+	- Table has fields `hash`, `dateTimeDelivered` as declared in property `$aFields`
+	- 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically 
+- generates a DataType Class `DataType/DTTableFoo.php` in the Module where the TableFoo resides
 - The foreign keys `id_LCPModelTableUserGroupRel` and `id_LCPModelTableLCP` are added by method `setForeignKey()`
-- generates a DataType Class "DataType/DTFooModelDBTableFoo.php" in the Module where the TableFoo resides
+- generates a DataType Class `DataType/DTFooModelDBTableFoo.php` in the Module where the TableFoo resides
 
 
 ---
