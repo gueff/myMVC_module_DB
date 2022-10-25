@@ -1,0 +1,11 @@
+.svn
+.git
+*.tar.gz
+generateDataTypes.php
+vendor
+_gitPush.sh
+_gitPush.sh.example
+_phanlistcreate.sh
+Changelog.md
+**/*.min.css
+**/*.min.js

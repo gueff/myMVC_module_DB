@@ -5,7 +5,7 @@ require_once realpath(__DIR__ . '/../../') . '/application/config/util/bootstrap
 
 #-------------------------
 
-\Cachix::init(\MVC\Registry::get('CACHIX_CONFIG'));
+\MVC\Cache::init(\MVC\Registry::get('CACHIX_CONFIG'));
 
 $sDir = '/' . basename(dirname(__FILE__)) . '/DataType';
 
@@ -21,7 +21,7 @@ $aConfig['DATATYPE'] = array();
 
 $aConfig['DATATYPE']['DB'] = array(
 
-    'dir' => '{MVC_MODULES}' . $sDirDB,
+    'dir' => '{MVC_MODULES_DIR}' . $sDirDB,
     'unlinkDir' => true,
     'class' => array(
 
@@ -152,7 +152,7 @@ $aConfig['DATATYPE']['DB'] = array(
 );
 
 $aConfig['DATATYPE']['SQL'] = array(
-    'dir' => '{MVC_MODULES}' . $sDirSQL,
+    'dir' => '{MVC_MODULES_DIR}' . $sDirSQL,
     'unlinkDir' => true,
     'class' => array(array('name' => 'FieldTypeConcrete', 'namespace' => $sNamespaceSQL,),)
 );
@@ -244,8 +244,8 @@ $aConfig['DATATYPE']['SQL']['class'][] = array(
 foreach ($aConfig['DATATYPE'] as $sKey => $aValue)
 {
     $sConfigName = 'MODULE_' . basename(dirname(__FILE__)). '_DATATYPE_' . $sKey;
-    $sConfig = \MVC\Helper::VAREXPORT($aConfig['DATATYPE'][$sKey], true, false);
-    $sConfig = str_replace("'{MVC_MODULES}", '\MVC\Registry::get("MVC_MODULES")' . " . '" , $sConfig);
+    $sConfig = \MVC\Debug::varExport($aConfig['DATATYPE'][$sKey], true, false);
+    $sConfig = str_replace("'{MVC_MODULES_DIR}", '\MVC\Registry::get("MVC_MODULES_DIR")' . " . '" , $sConfig);
     $sConfig = "<?php\n\n" . '$aConfig = ' . $sConfig . ';';
     (false === file_exists('./etc/config')) ? mkdir('etc/config') : false;
     (false === file_exists('./etc/config/DataType')) ? mkdir('etc/config/DataType') : false;

@@ -1,7 +1,7 @@
 <?php
 
 $aConfig = array(
-    'dir' => \MVC\Registry::get("MVC_MODULES") . '/DB/DataType/DB/',
+    'dir' => \MVC\Registry::get("MVC_MODULES_DIR") . '/DB/DataType/DB/',
     'unlinkDir' => true,
     'class' => array(
         0 => array(
