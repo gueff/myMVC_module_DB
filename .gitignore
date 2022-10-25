@@ -1,5 +1,6 @@
 .svn
 .git
+.idea
 *.tar.gz
 _generateDataTypes.php
 vendor
