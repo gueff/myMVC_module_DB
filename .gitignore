@@ -1,7 +1,7 @@
 .svn
 .git
 *.tar.gz
-generateDataTypes.php
+_generateDataTypes.php
 vendor
 _gitPush.sh
 _gitPush.sh.example
