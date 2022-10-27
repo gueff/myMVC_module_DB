@@ -1,4 +1,6 @@
 
+<img src="https://github.com/gueff/myMVC_module_DB/actions/workflows/super-linter.yml/badge.svg">
+
 # myMVC_module_DB
 
 - [1. Requirements](#1)
