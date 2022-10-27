@@ -6,8 +6,8 @@
 - [1. Requirements](#1)
 - [2. Repository](#2)
 - [3. Creation](#3)
-    - [3.1. Examples](#3-1)
-    - [3.2. Explained](#3-2)
+  - [3.1. Examples](#3-1)
+  - [3.2. Explained](#3-2)
 - [4. Events](#4)
 
 ---
@@ -18,11 +18,11 @@
 
 - Linux
 - php >= 7.4
-    - `pdo` extension
+  - `pdo` extension
 - myMVC 3.2.x
-    - `git clone --branch 3.2.x https://github.com/gueff/myMVC.git myMVC_3.2.x`
-    - github: <https://github.com/gueff/myMVC/tree/3.2.x>
-    - Docs: <https://mymvc.ueffing.net/>
+  - `git clone --branch 3.2.x https://github.com/gueff/myMVC.git myMVC_3.2.x`
+  - github: <https://github.com/gueff/myMVC/tree/3.2.x>
+  - Docs: <https://mymvc.ueffing.net/>
 
 <a id="2"></a>
 
@@ -79,8 +79,8 @@ class TableFoo extends \DB\Model\Db
 ~~~
 
 - creates the Table `TableFoo`
-    - Table has fields `hash`, `dateTimeDelivered` as declared in property `$aFields`
-        - 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically
+  - Table has fields `hash`, `dateTimeDelivered` as declared in property `$aFields`
+    - 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically
 - generates a DataType Class `DataType/DTFooModelTableFoo.php`
 
 ---
@@ -394,7 +394,7 @@ public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
 
 ## 4. Events
 
-~~~
+~~~text
 db.model.db.setSqlLoggingState.exception
 db.model.db.setForeignKey.exception
 db.model.db.checkIfTableExists.exception
