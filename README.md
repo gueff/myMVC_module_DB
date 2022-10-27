@@ -6,43 +6,48 @@
 - [1. Requirements](#1)
 - [2. Repository](#2)
 - [3. Creation](#3)
-	- [3.1. Examples](#3-1)
-	- [3.2. Explained](#3-2)
+    - [3.1. Examples](#3-1)
+    - [3.2. Explained](#3-2)
 - [4. Events](#4)
 
 ---
 
 <a id="1"></a>
-## Requirements
+
+## 1. Requirements
 
 - Linux
 - php >= 7.4
     - `pdo` extension
 - myMVC 3.2.x
-  - `git clone --branch 3.2.x https://github.com/gueff/myMVC.git myMVC_3.2.x`
-  - github: https://github.com/gueff/myMVC/tree/3.2.x   
-  - Docs: https://mymvc.ueffing.net/
-  
-<a id="2"></a>
-## 2. Repository 
+    - `git clone --branch 3.2.x https://github.com/gueff/myMVC.git myMVC_3.2.x`
+    - github: <https://github.com/gueff/myMVC/tree/3.2.x>
+    - Docs: <https://mymvc.ueffing.net/>
 
-- https://github.com/gueff/myMVC_module_DB
+<a id="2"></a>
+
+## 2. Repository
+
+- <https://github.com/gueff/myMVC_module_DB>
 
 <a id="3"></a>
+
 ## 3. Creation
 
 <a id="3-1"></a>
+
 ### 3.1. Examples
 
 _PHP Class_  
 as a Representation of the DB Table
 
-_Most simple_    
+_Most simple_
+
 ~~~php
 <?php
 
 class TableFoo extends \DB\Model\Db
-{	
+{ 
     /**
     * no need to declare field `id` - this will be always declared automatically
     * @var array 
@@ -72,14 +77,16 @@ class TableFoo extends \DB\Model\Db
     }
 }
 ~~~
+
 - creates the Table `TableFoo`
-	- Table has fields `hash`, `dateTimeDelivered` as declared in property `$aFields`
-	- 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically 
+    - Table has fields `hash`, `dateTimeDelivered` as declared in property `$aFields`
+        - 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically
 - generates a DataType Class `DataType/DTFooModelTableFoo.php`
 
 ---
 
-_Creating a Table and adding a Foreign Key_  
+_Creating a Table and adding a Foreign Key_
+
 ~~~php
 <?php
 
@@ -121,6 +128,7 @@ class TableUrl extends \DB\Model\Db
     }
 }
 ~~~
+
 - creates the Table "TableUrl"
 - Table has fields "urlOriginal", "urlMod"
 - The foreign key `id_LCPModelTableLCP` is added by method `setForeignKey()`
@@ -128,12 +136,14 @@ class TableUrl extends \DB\Model\Db
 
 ---
 
-_Usage_  
+_Usage_
+
 ~~~php
 $oTableUrl = new TableUrl($aDbConfig);
 ~~~
 
-_Db Config_  
+_Db Config_
+
 ~~~php
 $aDbConfig = array(
     'db' => array(
@@ -162,9 +172,11 @@ $aDbConfig = array(
 ~~~
 
 <a id="3-2"></a>
+
 ### 3.2. Explained
 
-_Fields_  
+_Fields_
+
 ~~~php
 /**
  * @var array
@@ -172,17 +184,18 @@ _Fields_
 protected $aFields = array(
     'name'          => 'varchar(255)    COLLATE utf8mb4_bin NOT NULL    COMMENT "Company"',
     'ip'            => 'varchar(19)     COLLATE utf8mb4_bin NOT NULL    COMMENT "IP Adresse"',
-    'success'       => 'int(1)											COMMENT ""',
-    'datetimeStart'	=> 'datetime										COMMENT "Phase Beginn"',
-    'datetimeEnd'	=> 'datetime										COMMENT "Phase Ende"',
-    'kwStart'       => 'int(2)								NOT NULL	COMMENT "KW Start"',
-    'kwEnd'         => 'int(2)      						NOT NULL 	COMMENT "KW Ende"',
-    'description'   => 'text            COLLATE utf8mb4_bin	NOT NULL    COMMENT "Beschreibung"'
+    'success'       => 'int(1)           COMMENT ""',
+    'datetimeStart' => 'datetime          COMMENT "Phase Beginn"',
+    'datetimeEnd' => 'datetime          COMMENT "Phase Ende"',
+    'kwStart'       => 'int(2)        NOT NULL COMMENT "KW Start"',
+    'kwEnd'         => 'int(2)            NOT NULL  COMMENT "KW Ende"',
+    'description'   => 'text            COLLATE utf8mb4_bin NOT NULL    COMMENT "Beschreibung"'
 );
 ~~~
 
 _`create` (INSERT)_  
-therefore an object of its related Datatype must be instaciated and given to the method `create`. Here e.g. with Datatype "DTMandosModelDBTableUser" to TableClass "modules/Mandos/Model/DB/TableUser":  
+therefore an object of its related Datatype must be instaciated and given to the method `create`. Here e.g. with Datatype "DTMandosModelDBTableUser" to TableClass "modules/Mandos/Model/DB/TableUser":
+
 ~~~php
 // inside TableClass:
 $this->create(DTMandosModelDBTableUser::create()
@@ -202,7 +215,8 @@ $this->create(DTMandosModelDBTableUser::create()
     ->set_stampCreate($sNow));
 ~~~
 
-_`count`_  
+_`count`_
+
 ~~~php
 // Amount of all Datasets
 $iAmount = $this->count();
@@ -219,7 +233,8 @@ $iAmount = $this->count(
 );
 ~~~
 
-_`get`_  
+_`get`_
+
 ~~~php
 // get all Datasets
 $aDataType = $this->get();
@@ -267,7 +282,8 @@ $aDataType = $this->get(
 );
 ~~~
 
-_`retrieve`_  
+_`retrieve`_
+
 ~~~php
     // get specific Datasets
     $aDataType = $this->retrieve(
@@ -297,14 +313,17 @@ _`retrieve`_
 );
 ~~~
 
-_`updateTupel`_  
+_`updateTupel`_
+
 ~~~php
 // deliver the appropriate (modified) DataType Object to the method
 $bSuccess = $this->updateTupel($oTableDataType);
 ~~~
+
 - the equivalent dataset tupel with object's `id` will be updated.
 
-_`update`_  
+_`update`_
+
 ~~~php
 $bSuccess = $this->update(
     $oTableDataType,
@@ -326,13 +345,15 @@ $bSuccess = $this->update(
 );
 ~~~
 
-_`deleteTupel`_  
+_`deleteTupel`_
+
 ~~~php
 // deliver the appropriate DataType Object to the method
 $bSuccess = $this->delete($oTableDataType);
 ~~~
 
-_`delete`_  
+_`delete`_
+
 ~~~php
 $bSuccess = $this->delete(
     // set
@@ -347,12 +368,13 @@ $bSuccess = $this->delete(
 
 ---
 
-_`SQL`_  
+_`SQL`_
+
 ~~~php
 /**
-	* @param DTLCPModelTableLCP $oDTLCPModelTableLCP
-	* @return array
-	*/
+ * @param DTLCPModelTableLCP $oDTLCPModelTableLCP
+ * @return array
+ */
 public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
 {
     $sSql = "
@@ -369,6 +391,7 @@ public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
 ~~~
 
 <a id="4"></a>
+
 ## 4. Events
 
 ~~~
