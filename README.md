@@ -44,18 +44,18 @@ _Most simple_
 class TableFoo extends \DB\Model\Db
 {	
     /**
-     * no need to declare field `id` - this will be always declared automatically
-     * @var array 
-     */
+    * no need to declare field `id` - this will be always declared automatically
+    * @var array 
+    */
     protected $aFields = array(
         'hash'                  => "varchar(32) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL COMMENT  'aus: recipientEmail,reason,+SALT'",
         'dateTimeDelivered'     => 'datetime',
     );
-
+    
     /**
-     * TableFoo constructor.
-     * @param array $aDbConfig
-     */
+    * TableFoo constructor.
+    * @param array $aDbConfig
+    */
     public function __construct(array $aDbConfig = array())
     {
         // basic creation of the table
@@ -63,10 +63,10 @@ class TableFoo extends \DB\Model\Db
             $this->aFields, 
             $aDbConfig
         );
-
+        
         // sync Table Fields according to $aFields 
         $this->synchronizeFields();
-
+        
         // creating a DataType Class according to the table
         $this->generateDataType();
     }
@@ -90,32 +90,32 @@ use DB\DataType\DB\Foreign;
 class TableUrl extends \DB\Model\Db
 {
     /**
-     * @var array
-     */
-	protected $aField = array(
-		'urlOriginal'           => "tinytext        CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
+    * @var array
+    */
+    protected $aField = array(
+        'urlOriginal'           => "tinytext        CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
         'urlMod'                => "tinytext        CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
-	);
-
+    );
+    
     /**
-     * TableUrl constructor.
-     * @param array $aDbConfig
-     * @throws \ReflectionException
-     */
-	public function __construct(array $aDbConfig = array())
-	{
-		parent::__construct(
+    * TableUrl constructor.
+    * @param array $aDbConfig
+    * @throws \ReflectionException
+    */
+    public function __construct(array $aDbConfig = array())
+    {
+        parent::__construct(
             $this->aField,
             $aDbConfig
         );
-
+        
         $this->setForeignKey(
             Foreign::create()
                 ->set_sForeignKey('id_LCPModelTableLCP')
                 ->set_sReferenceTable('LCPModelTableLCP')
                 ->set_sOnDelete(Foreign::DELETE_CASCADE)
         );
-
+    
         $this->synchronizeFields();
         $this->generateDataType();
     }
@@ -149,13 +149,13 @@ $aDbConfig = array(
     ),
     'logging' => array(
         'log_output' => 'FILE',
-    
-         // consider to turn it on for develop and test environments only
+        
+        // consider to turn it on for develop and test environments only
         'general_log' => 'ON',
-    
-         // 1) make sure write access is given to the folder
-         // as long as the db user is going to write and not the webserver user
-         // 2) consider a logrotate mechanism for this logfile as it may grow quickly
+        
+        // 1) make sure write access is given to the folder
+        // as long as the db user is going to write and not the webserver user
+        // 2) consider a logrotate mechanism for this logfile as it may grow quickly
         'general_log_file' => '/tmp/db.log'
     )
 );
@@ -170,13 +170,13 @@ _Fields_
  * @var array
  */
 protected $aFields = array(
-	'name'          => 'varchar(255)    COLLATE utf8mb4_bin NOT NULL    COMMENT "Company"',
-	'ip'            => 'varchar(19)     COLLATE utf8mb4_bin NOT NULL    COMMENT "IP Adresse"',
-	'success'       => 'int(1)											COMMENT ""',
-	'datetimeStart'	=> 'datetime										COMMENT "Phase Beginn"',
-	'datetimeEnd'	=> 'datetime										COMMENT "Phase Ende"',
-	'kwStart'       => 'int(2)								NOT NULL	COMMENT "KW Start"',
-	'kwEnd'         => 'int(2)      						NOT NULL 	COMMENT "KW Ende"',
+    'name'          => 'varchar(255)    COLLATE utf8mb4_bin NOT NULL    COMMENT "Company"',
+    'ip'            => 'varchar(19)     COLLATE utf8mb4_bin NOT NULL    COMMENT "IP Adresse"',
+    'success'       => 'int(1)											COMMENT ""',
+    'datetimeStart'	=> 'datetime										COMMENT "Phase Beginn"',
+    'datetimeEnd'	=> 'datetime										COMMENT "Phase Ende"',
+    'kwStart'       => 'int(2)								NOT NULL	COMMENT "KW Start"',
+    'kwEnd'         => 'int(2)      						NOT NULL 	COMMENT "KW Ende"',
     'description'   => 'text            COLLATE utf8mb4_bin	NOT NULL    COMMENT "Beschreibung"'
 );
 ~~~
@@ -209,12 +209,12 @@ $iAmount = $this->count();
 
 // Amount of specific Datasets
 $iAmount = $this->count(
-  DTArrayObject::create()
-    ->add_aKeyValue(
-        DTKeyValue::create()
-          ->set_sKey('stampChange')
-          ->set_mOptional1('=')
-          ->set_sValue('2021-06-19')
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sKey('stampChange')
+                ->set_mOptional1('=')
+                ->set_sValue('2021-06-19')
     )  
 );
 ~~~
@@ -226,11 +226,11 @@ $aDataType = $this->get();
 
 // get first 30 Datasets (LIMIT 0,30)
 $aDataType = $this->get(
-  0,
-  null,
-  DTArrayObject::create()
-    ->add_aKeyValue(
-      DTKeyValue::create()->set_sValue('LIMIT 0,30')
+    0,
+    null,
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()->set_sValue('LIMIT 0,30')
     )   
 );
 
@@ -239,61 +239,61 @@ $aDataType = $this->get(1);
 
 // get specific Datasets
 $aDataType = $this->get(
-  0,
-  DTArrayObject::create()
-    ->add_aKeyValue(
-        DTKeyValue::create()
-          ->set_sKey('stampChange')
-          ->set_mOptional1('=')
-          ->set_sValue('2021-06-19')
+    0,
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sKey('stampChange')
+                ->set_mOptional1('=')
+                ->set_sValue('2021-06-19')
     ) 
 );
-
+    
 // get Datasets with sort order
 $aDataType = $this->get(
-  0,
-  DTArrayObject::create()
-    ->add_aKeyValue(
-        DTKeyValue::create()
-          ->set_sKey('stampChange')
-          ->set_mOptional1('=')
-          ->set_sValue('2021-06-19')
-    ),
-  DTArrayObject::create()
-    ->add_aKeyValue(
-        DTKeyValue::create()
-            ->set_sValue('ORDER BY id DESC')
-    )
+    0,
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sKey('stampChange')
+                ->set_mOptional1('=')
+                ->set_sValue('2021-06-19')
+        ),
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sValue('ORDER BY id DESC')
+        )
 );
 ~~~
 
 _`retrieve`_  
 ~~~php
-// get specific Datasets
-$aDataType = $this->retrieve(
-  DTArrayObject::create()
-    ->add_aKeyValue(
-        DTKeyValue::create()
-          ->set_sKey('stampChange')
-          ->set_mOptional1('LIKE')
-          ->set_sValue('2021-06-19')
-    ); 
-);
-
-// get Datasets with sort order
-$aDataType = $this->retrieve(
-  DTArrayObject::create()
-    ->add_aKeyValue(
-        DTKeyValue::create()
-          ->set_sKey('stampChange')
-          ->set_mOptional1('LIKE')
-          ->set_sValue('2021-06-19')
-    ),
-  DTArrayObject::create()
-    ->add_aKeyValue(
-        DTKeyValue::create()
-            ->set_sValue('ORDER BY id DESC')
-    )
+    // get specific Datasets
+    $aDataType = $this->retrieve(
+        DTArrayObject::create()
+            ->add_aKeyValue(
+                DTKeyValue::create()
+                    ->set_sKey('stampChange')
+                    ->set_mOptional1('LIKE')
+                    ->set_sValue('2021-06-19')
+             ); 
+    );
+    
+    // get Datasets with sort order
+    $aDataType = $this->retrieve(
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sKey('stampChange')
+                ->set_mOptional1('LIKE')
+                ->set_sValue('2021-06-19')
+        ),
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sValue('ORDER BY id DESC')
+        )
 );
 ~~~
 
@@ -307,22 +307,22 @@ $bSuccess = $this->updateTupel($oTableDataType);
 _`update`_  
 ~~~php
 $bSuccess = $this->update(
-	$oTableDataType,
-	// set
-	DTArrayObject::create()
-    	->add_aKeyValue(
-        	DTKeyValue::create()
-        	->set_key('stampChange)
-            ->set_sValue('2021-06-19 00:00:00')
-    ),
+    $oTableDataType,
+    // set
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_key('stampChange')
+                ->set_sValue('2021-06-19 00:00:00')
+        ),
     // where
-	DTArrayObject::create()
-    	->add_aKeyValue(
-        	DTKeyValue::create()
-        	->set_key('stampChange)
-        	->set_mOptional1('<')
-            ->set_sValue('2021-06-19 00:00:00')
-    ),
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_key('stampChange')
+                ->set_mOptional1('<')
+                ->set_sValue('2021-06-19 00:00:00')
+        ),
 );
 ~~~
 
@@ -335,13 +335,13 @@ $bSuccess = $this->delete($oTableDataType);
 _`delete`_  
 ~~~php
 $bSuccess = $this->delete(
-	// set
-	DTArrayObject::create()
-    	->add_aKeyValue(
-        	DTKeyValue::create()
-        	->set_key('stampChange)
-            ->set_sValue('2021-06-19 00:00:00')
-    )
+    // set
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_key('stampChange')
+                ->set_sValue('2021-06-19 00:00:00')
+        )
 );
 ~~~
 
@@ -355,16 +355,16 @@ _`SQL`_
 	*/
 public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
 {
-	$sSql = "
-		SELECT CLICK.*, URL.urlOriginal, URL.urlMod
-		FROM `LCPModelTableClick` AS CLICK
-		RIGHT JOIN `LCPModelTableUrl` AS URL ON CLICK.id_LCPModelTableUrl = URL.id
-		WHERE 1
-		AND URL.id_LCPModelTableLCP = " . (int) $oDTLCPModelTableLCP->get_id();
-
-	$aResult = $this->oDbPDO->fetchAll($sSql);
-
-	return $aResult;
+    $sSql = "
+        SELECT CLICK.*, URL.urlOriginal, URL.urlMod
+        FROM `LCPModelTableClick` AS CLICK
+        RIGHT JOIN `LCPModelTableUrl` AS URL ON CLICK.id_LCPModelTableUrl = URL.id
+        WHERE 1
+        AND URL.id_LCPModelTableLCP = " . (int) $oDTLCPModelTableLCP->get_id();
+    
+    $aResult = $this->oDbPDO->fetchAll($sSql);
+    
+    return $aResult;
 }
 ~~~
 
