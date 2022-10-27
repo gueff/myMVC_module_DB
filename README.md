@@ -1,7 +1,7 @@
 
-<img src="https://github.com/gueff/myMVC_module_DB/actions/workflows/super-linter.yml/badge.svg">
-
 # myMVC_module_DB
+
+<img src="https://github.com/gueff/myMVC_module_DB/actions/workflows/super-linter.yml/badge.svg">
 
 - [1. Requirements](#1)
 - [2. Repository](#2)
@@ -22,13 +22,11 @@
   - `git clone --branch 3.2.x https://github.com/gueff/myMVC.git myMVC_3.2.x`
   - github: https://github.com/gueff/myMVC/tree/3.2.x   
   - Docs: https://mymvc.ueffing.net/
-
   
 <a id="2"></a>
 ## 2. Repository 
 
 - https://github.com/gueff/myMVC_module_DB
-
 
 <a id="3"></a>
 ## 3. Creation
