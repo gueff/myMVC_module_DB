@@ -39,38 +39,38 @@ class Db
     /**
      * @var string
      */
-    protected $sTableName = '';
+    public $sTableName = '';
 
     /**
      * @var string
      */
-    protected $sCacheKeyTableName = '';
+    public $sCacheKeyTableName = '';
 
     /**
      * @var string
      */
-    protected $sCacheValueTableName = '';
+    public $sCacheValueTableName = '';
 
     /**
      * @var array
      */
-    protected $aFieldArrayComplete = array();
+    public $aFieldArrayComplete = array();
 
     /**
      * @var \DB\Model\DbPDO
      */
-	protected $oDbPDO;
+	public $oDbPDO;
 
     /**
      * @var bool
      */
-	protected static $bCaching = true;
+	public static $bCaching = true;
 
     /**
      * @see README.md
      * @var array
      */
-	protected $aConfig = array();
+	public $aConfig = array();
 
     /**
      * These Fieldnames are reserved and may not be part of setup
@@ -79,7 +79,7 @@ class Db
      * an empty array to it: $oDb->setReservedFieldNameArray(array());
      * @var array
      */
-	protected $aReservedFieldName = array(
+	public $aReservedFieldName = array(
 	    'id',
         'stampChange',
         'stampCreate'
@@ -89,7 +89,7 @@ class Db
      * array of sql types and their php equivalents
      * @var array
      */
-    protected static $aSqlType = array(
+    public static $aSqlType = array(
         'char' => 'string',
         'varchar' => 'string',
         'binary' => 'string',
