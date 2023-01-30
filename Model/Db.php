@@ -554,7 +554,7 @@ class Db
 
             try
             {
-                $this->oDbPDO->query ($sSql);
+                ('' !== $sSql) ? $this->oDbPDO->query ($sSql) : false;
             }
             catch (\Exception $oException)
             {
