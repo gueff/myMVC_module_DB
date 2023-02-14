@@ -22,7 +22,6 @@ use DB\DataType\DB\TableDataType;
 use MVC\Cache;
 use MVC\DataType\DTArrayObject;
 use MVC\DataType\DTKeyValue;
-use MVC\Debug;
 use MVC\Error;
 use MVC\Event;
 use MVC\Generator\DataType;
@@ -71,6 +70,11 @@ class Db
      * @var array
      */
 	public $aConfig = array();
+
+    /**
+     * @var array
+     */
+    public $aForeign = array();
 
     /**
      * These Fieldnames are reserved and may not be part of setup
@@ -149,6 +153,7 @@ class Db
 	    $this->sTableName = self::createTableName(get_class($this));
         $this->sCacheKeyTableName = __CLASS__ . '.' . $this->sTableName;
         $this->sCacheValueTableName = func_get_args();
+
         Log::write(__METHOD__, $this->sTableName . '.log');
 
         // init DB
@@ -169,8 +174,9 @@ class Db
 
         if ($this->sCacheValueTableName !== Cache::getCache($this->sCacheKeyTableName))
         {
-            (false === filter_var($this->checkIfTableExists ($this->sTableName), FILTER_VALIDATE_BOOLEAN)) ? $this->createTable($this->sTableName, $aFields, $aAlterTable) : false;
-            $this->synchronizeFields();
+            (false === filter_var($this->checkIfTableExists ($this->sTableName), FILTER_VALIDATE_BOOLEAN))
+                ? $this->createTable($this->sTableName, $aFields, $aAlterTable)
+                : false;
 
             if (true === self::$bCaching)
             {
@@ -219,6 +225,9 @@ class Db
      */
     protected function setForeignKey(Foreign $oDtDbForeign)
     {
+        // add foreign to class property
+        $this->aForeign[$oDtDbForeign->get_sForeignKey()] = $oDtDbForeign;
+
         // already exists
         if (false !== $this->getFieldInfo($oDtDbForeign->get_sForeignKey()))
         {
@@ -336,6 +345,9 @@ class Db
         return $sClassName;
     }
 
+    /**
+     * @return array|string[]
+     */
     public static function getSqlTypeArray()
     {
         return self::$aSqlType;
@@ -433,6 +445,7 @@ class Db
         foreach ($aAlterTable as $sValue)
         {
             $sSql.= "ALTER TABLE `" . $sTable . "` ADD " . $sValue . ";\n";
+            Log::write($sSql, 'debug.log');
         }
 
 		try
@@ -471,6 +484,13 @@ class Db
 			return false;
 		}
 
+        $aColumnAssoc = array();
+
+        foreach ($aColumn as $aValue)
+        {
+            $aColumnAssoc[$aValue['Field']] = $aValue;
+        }
+
         $aColumnFinal = array();
 
 		foreach ($aColumn as $aValue)
@@ -491,14 +511,22 @@ class Db
 
         Cache::saveCache($sCacheSyncKey, $sCacheSyncValue);
 
+        $aTableNoForeignKeys = array_diff(array_keys($this->getFieldInfo()), array_keys($this->aForeign));
+        $aTableFieldDef = array_keys(get($this->aFieldArrayComplete, []));
+
+        // Delete
+        $aDelete = array_diff($aTableNoForeignKeys, $aTableFieldDef);
+
+        // Insert
+        $aInsert = [];
+        $aInsertTmp = array_diff($aTableFieldDef, $aTableNoForeignKeys);
+        foreach ($aInsertTmp as $sInsert) {(isset($this->aField[$sInsert])) ? $aInsert[$sInsert] = $this->aField[$sInsert] : false;}
+
 		DELETE: {
 
-		    // array1 has to be in array2
-            $aDelete = array_diff_key($aColumnFinal, $this->aFieldArrayComplete);
-
-			foreach ($aDelete as $sKey => $aValue)
+			foreach ($aDelete as $sFieldName)
 			{
-			    $oDTDBConstraint = $this->getConstraintInfo($aValue); # ['Field']);
+			    $oDTDBConstraint = $this->getConstraintInfo(get($sFieldName, ''));
                 $sSql = '';
 
                 if ('' !== $oDTDBConstraint->get_CONSTRAINT_NAME())
@@ -507,24 +535,25 @@ class Db
                     $sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP INDEX `" . $oDTDBConstraint->get_CONSTRAINT_NAME() . "`;\n";
                 }
 
-				$sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP  `" . $sKey . "`;\n";
+				$sSql.= "ALTER TABLE  `" . $this->sTableName  . "` DROP  `" . $sFieldName . "`;\n";
 
-				try
-				{
-					$this->oDbPDO->query ($sSql);
-				}
-				catch (\Exception $oException)
-				{
-					\MVC\Error::exception($oException);
+                if (false === empty($sSql))
+                {
+                    try
+                    {
+                        $this->oDbPDO->query ($sSql);
+                    }
+                    catch (\Exception $oException)
+                    {
+                        \MVC\Error::exception($oException);
 
-					return false;
-				}
+                        return false;
+                    }
+                }
 			}
 		}
 		
 		INSERT: {
-
-			$aInsert = array_diff_key($this->getFieldArray(), $aColumnFinal);
 
             foreach ($aInsert as $sKey => $aValue)
 			{
@@ -545,24 +574,21 @@ class Db
 		
 		UPDATE: {
 
-            $sSql = '';
-
             foreach ($this->getFieldArray() as $sKey => $sValue)
             {
-                $sSql.= "ALTER TABLE `" . $this->sTableName . "` CHANGE  `" . $sKey . "`\n`" . $sKey . "` " . $sValue . ";\n";
-            }
+                $sSql = "ALTER TABLE `" . $this->sTableName . "` CHANGE  `" . $sKey . "`\n`" . $sKey . "` " . $sValue . ";\n";
 
-            try
-            {
-                ('' !== $sSql) ? $this->oDbPDO->query ($sSql) : false;
-            }
-            catch (\Exception $oException)
-            {
-                \MVC\Error::exception($oException);
+                try
+                {
+                    $this->oDbPDO->query ($sSql);
+                }
+                catch (\Exception $oException)
+                {
+                    \MVC\Error::exception($oException);
 
-                return false;
+                    return false;
+                }
             }
-
 		}
 			
 		return true;
@@ -735,7 +761,7 @@ class Db
         $oStmt = $this->oDbPDO->prepare($sSql);
 
         // BINDINGS
-        foreach ($aField as $iCnt => $sField)
+        foreach ($aField as $sField)
         {
             if ('id' === $sField){continue;}
 
@@ -743,7 +769,7 @@ class Db
             $sValue = $oTableDataType->$sMethod();
             $sType = gettype($sValue);
 
-            ('boolean' === $sType) ? $sDataType = \PDO::PARAM_ : false;
+            ('boolean' === $sType) ? $sDataType = \PDO::PARAM_BOOL : false;
             ('integer' === $sType) ? $sDataType = \PDO::PARAM_INT : false;
             ('null' === $sType) ? $sDataType = \PDO::PARAM_NULL : false;
             ('string' === $sType) ? $sDataType = \PDO::PARAM_STR : false;
@@ -1174,6 +1200,12 @@ class Db
      */
 	public function __destruct()
     {
+        // sync Table Fields according to $aFields
+        $this->synchronizeFields();
+
+        // creating a DataType Class according to the table
+        $this->generateDataType();
+
         Cache::autoDeleteCache();
     }
 }
