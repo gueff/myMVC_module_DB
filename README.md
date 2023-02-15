@@ -68,12 +68,6 @@ class TableFoo extends \DB\Model\Db
             $this->aFields, 
             $aDbConfig
         );
-        
-        // sync Table Fields according to $aFields 
-        $this->synchronizeFields();
-        
-        // creating a DataType Class according to the table
-        $this->generateDataType();
     }
 }
 ~~~
@@ -122,9 +116,6 @@ class TableUrl extends \DB\Model\Db
                 ->set_sReferenceTable('LCPModelTableLCP')
                 ->set_sOnDelete(Foreign::DELETE_CASCADE)
         );
-    
-        $this->synchronizeFields();
-        $this->generateDataType();
     }
 }
 ~~~
@@ -182,14 +173,14 @@ _Fields_
  * @var array
  */
 protected $aFields = array(
-    'name'          => 'varchar(255)    COLLATE utf8mb4_bin NOT NULL    COMMENT "Company"',
-    'ip'            => 'varchar(19)     COLLATE utf8mb4_bin NOT NULL    COMMENT "IP Adresse"',
-    'success'       => 'int(1)           COMMENT ""',
-    'datetimeStart' => 'datetime          COMMENT "Phase Beginn"',
-    'datetimeEnd' => 'datetime          COMMENT "Phase Ende"',
+    'name'          => 'varchar(255)  COLLATE utf8mb4_bin NOT NULL    COMMENT "Company"',
+    'ip'            => 'varchar(19)   COLLATE utf8mb4_bin NOT NULL    COMMENT "IP Adresse"',
+    'success'       => 'int(1)        COMMENT ""',
+    'datetimeStart' => 'datetime      COMMENT "Phase Beginn"',
+    'datetimeEnd'   => 'datetime      COMMENT "Phase Ende"',
     'kwStart'       => 'int(2)        NOT NULL COMMENT "KW Start"',
-    'kwEnd'         => 'int(2)            NOT NULL  COMMENT "KW Ende"',
-    'description'   => 'text            COLLATE utf8mb4_bin NOT NULL    COMMENT "Beschreibung"'
+    'kwEnd'         => 'int(2)        NOT NULL  COMMENT "KW Ende"',
+    'description'   => 'text          COLLATE utf8mb4_bin NOT NULL    COMMENT "Beschreibung"'
 );
 ~~~
 
@@ -404,6 +395,8 @@ db.model.db.synchronizeFields.delete.exception
 db.model.db.synchronizeFields.insert.exception
 db.model.db.synchronizeFields.update.exception
 db.model.db.create.sql
+db.model.db.createTable.sql
+db.model.db.insert.sql
 db.model.db.create.exception
 db.model.db.retrieve.sql
 db.model.db.retrieve.exception
