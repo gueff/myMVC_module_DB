@@ -4,6 +4,8 @@
 *.tar.gz
 _generateDataTypes.php
 vendor
+*.sh
+**/*.sh
 _gitPull.sh
 _gitPush.sh
 _gitPush.sh.example
