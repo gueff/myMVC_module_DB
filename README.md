@@ -6,9 +6,10 @@
 - [1. Requirements](#1)
 - [2. Repository](#2)
 - [3. Creation](#3)
-  - [3.1. Examples](#3-1)
-  - [3.2. Explained](#3-2)
+    - [3.1. Examples](#3-1)
+    - [3.2. Explained](#3-2)
 - [4. Events](#4)
+    - [4.1. Logging SQL](#4-1)
 
 ---
 
@@ -406,4 +407,57 @@ db.model.db.update.sql
 db.model.db.update.exception
 db.model.db.delete.sql
 db.model.db.delete.exception
+~~~
+
+<a id="4-1"></a>
+
+### 4.1. Logging SQL
+
+you can log SQL queries by listening to events.
+
+create a file `sql.php` in the event folder of your myMVC module
+and declare the bindings as follows.
+
+_`/modules/{MODULE}/etc/event/sql.php`_
+~~~php
+#-------------------------------------------------------------
+# declare bindings
+
+$aEvent = [
+    'db.model.db.create.sql' => array(
+        function(\MVC\DataType\DTArrayObject $oDTArrayObject) {
+            \MVC\Log::write($oDTArrayObject->getDTKeyValueByKey('sSql')->get_sValue(), 'sql.log');
+        }
+    ),
+    'db.model.db.insert.sql' => array(
+        function(\MVC\DataType\DTArrayObject $oDTArrayObject) {
+            \MVC\Log::write($oDTArrayObject->getDTKeyValueByKey('sSql')->get_sValue(), 'sql.log');
+        }
+    ),
+    'db.model.db.retrieve.sql' => array(
+        function(\MVC\DataType\DTArrayObject $oDTArrayObject) {
+            \MVC\Log::write($oDTArrayObject->getDTKeyValueByKey('sSql')->get_sValue(), 'sql.log');
+        }
+    ),
+    'db.model.db.update.sql' => array(
+        function(\MVC\DataType\DTArrayObject $oDTArrayObject) {
+            \MVC\Log::write($oDTArrayObject->getDTKeyValueByKey('sSql')->get_sValue(), 'sql.log');
+        }
+    ),
+    'db.model.db.delete.sql' => array(
+        function(\MVC\DataType\DTArrayObject $oDTArrayObject) {
+            \MVC\Log::write($oDTArrayObject->getDTKeyValueByKey('sSql')->get_sValue(), 'sql.log');
+        }
+    ),
+    'db.model.db.createTable.sql' => array(
+        function(\MVC\DataType\DTArrayObject $oDTArrayObject) {
+            \MVC\Log::write($oDTArrayObject->getDTKeyValueByKey('sSql')->get_sValue(), 'sql.log');
+        }
+    ),
+];
+
+#-------------------------------------------------------------
+# process: bind the declared ones
+
+\MVC\Event::processBindConfigStack($aEvent);
 ~~~
