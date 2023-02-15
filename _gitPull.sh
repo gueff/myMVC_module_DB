@@ -2,7 +2,7 @@
 
 sRepository="gueff/myMVC_module_DB";
 sGitUser="gueff";
-sGitToken="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";
+sGitToken="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";
 sBranch="3.2.x";
 
 #--------------------
