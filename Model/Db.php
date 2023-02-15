@@ -445,8 +445,17 @@ class Db
         foreach ($aAlterTable as $sValue)
         {
             $sSql.= "ALTER TABLE `" . $sTable . "` ADD " . $sValue . ";\n";
-            Log::write($sSql, 'debug.log');
         }
+
+        Event::run(
+            'db.model.db.createTable.sql',
+            DTArrayObject::create()
+                ->add_aKeyValue(
+                    DTKeyValue::create()
+                        ->set_sKey('sSql')
+                        ->set_sValue(str_replace("\n", ' ', stripslashes($sSql)))
+                )
+        );
 
 		try
 		{
@@ -539,6 +548,16 @@ class Db
 
                 if (false === empty($sSql))
                 {
+                    Event::run(
+                        'db.model.db.delete.sql',
+                        DTArrayObject::create()
+                            ->add_aKeyValue(
+                                DTKeyValue::create()
+                                    ->set_sKey('sSql')
+                                    ->set_sValue(str_replace("\n", ' ', stripslashes($sSql)))
+                            )
+                    );
+
                     try
                     {
                         $this->oDbPDO->query ($sSql);
@@ -559,6 +578,16 @@ class Db
 			{
 				$sSql = "ALTER TABLE  `" . $this->sTableName  . "` ADD  `" . $sKey . "` " . $aValue . " AFTER  `id`\n";
 
+                Event::run(
+                    'db.model.db.insert.sql',
+                    DTArrayObject::create()
+                        ->add_aKeyValue(
+                            DTKeyValue::create()
+                                ->set_sKey('sSql')
+                                ->set_sValue(str_replace("\n", ' ', stripslashes($sSql)))
+                        )
+                );
+
 				try
 				{
 					$this->oDbPDO->query ($sSql);
@@ -577,6 +606,16 @@ class Db
             foreach ($this->getFieldArray() as $sKey => $sValue)
             {
                 $sSql = "ALTER TABLE `" . $this->sTableName . "` CHANGE  `" . $sKey . "`\n`" . $sKey . "` " . $sValue . ";\n";
+
+                Event::run(
+                    'db.model.db.update.sql',
+                    DTArrayObject::create()
+                        ->add_aKeyValue(
+                            DTKeyValue::create()
+                                ->set_sKey('sSql')
+                                ->set_sValue(str_replace("\n", ' ', stripslashes($sSql)))
+                        )
+                );
 
                 try
                 {
@@ -733,6 +772,7 @@ class Db
             $sSqlExplain.= "`" . $sField . "`,";;
         }
 
+        $sSqlExplain = rtrim($sSqlExplain, ',');
         $sSql = substr($sSql, 0, -1);
         $sSql.= "\n) VALUES (\n";
         $sSqlExplain.= ") VALUES (";;
@@ -741,22 +781,10 @@ class Db
         {
             if ('id' === $sField){continue;}
             $sSql.= ":" . $sField . ",";
-            $sSqlExplain.= ":" . $sField . ",";
         }
 
         $sSql = substr($sSql, 0, -1);
         $sSql.= "\n);\n";
-        $sSqlExplain.= "); ";
-
-        Event::run(
-            'db.model.db.create.sql',
-            DTArrayObject::create()
-                ->add_aKeyValue(
-                    DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
-                )
-        );
 
         $oStmt = $this->oDbPDO->prepare($sSql);
 
@@ -780,7 +808,21 @@ class Db
                 $sValue,
                 $sDataType
             );
+            (null === $sValue) ? $sSqlExplain.= "NULL," : $sSqlExplain.= "'" . $sValue . "',";
         }
+
+        $sSqlExplain = rtrim($sSqlExplain, ',');
+        $sSqlExplain.= "); ";
+
+        Event::run(
+            'db.model.db.create.sql',
+            DTArrayObject::create()
+                ->add_aKeyValue(
+                    DTKeyValue::create()
+                        ->set_sKey('sSql')
+                        ->set_sValue(str_replace("\n", ' ', stripslashes($sSqlExplain)))
+                )
+        );
 
         try
         {
@@ -873,15 +915,13 @@ class Db
             }
         }
 
-        $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
-
         Event::run(
             'db.model.db.retrieve.sql',
             DTArrayObject::create()
                 ->add_aKeyValue(
                     DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
+                        ->set_sKey('sSql')
+                        ->set_sValue(str_replace("\n", ' ', stripslashes($sSqlExplain)))
             )
         );
 
@@ -979,15 +1019,13 @@ class Db
             }
         }
 
-        $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
-
         Event::run(
             'db.model.db.count.sql',
             DTArrayObject::create()
                 ->add_aKeyValue(
                     DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
+                        ->set_sKey('sSql')
+                        ->set_sValue(str_replace("\n", ' ', stripslashes($sSqlExplain)))
                 )
         );
 
@@ -1079,14 +1117,14 @@ class Db
 
         $sSql.= $sWhere;
         $sSqlExplain.= $sWhere;
-        $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
+
         Event::run(
             'db.model.db.update.sql',
             DTArrayObject::create()
                 ->add_aKeyValue(
                     DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
+                        ->set_sKey('sSql')
+                        ->set_sValue(str_replace("\n", ' ', stripslashes($sSqlExplain)))
             )
         );
 
@@ -1151,14 +1189,13 @@ class Db
             $sSqlExplain.= 'AND `' . $oDTKeyValue->get_sKey() . '` = ' . "'" . $oDTKeyValue->get_sValue() . "'\n";
         }
 
-        $sSqlExplain = str_replace("\n", ' ', htmlentities(stripslashes($sSqlExplain)));
         Event::run(
             'db.model.db.delete.sql',
             DTArrayObject::create()
                 ->add_aKeyValue(
                     DTKeyValue::create()
-                        ->set_sKey('sSqlExplain')
-                        ->set_sValue($sSqlExplain)
+                        ->set_sKey('sSql')
+                        ->set_sValue(str_replace("\n", ' ', stripslashes($sSqlExplain)))
                 )
         );
 
