@@ -27,7 +27,7 @@ use MVC\Event;
 use MVC\Generator\DataType;
 use MVC\Log;
 use MVC\Registry;
-use MVC\Request;
+use MVC\Route;
 
 /**
  * Class Db
@@ -375,17 +375,17 @@ class Db
 	protected function checkIfTableExists ($sTable)
 	{
 		try
-		{						
+		{
 			// Select 1 from table_name will return false if the table does not exist.
 			$aResult = $this->oDbPDO->fetchAll ("DESCRIBE `" . $sTable . "`");
 		}
 		catch (\Exception $oException)
-		{		
+		{
 			Error::exception($oException);
 
 			return false;
 		}
-		
+
 		if (empty($aResult))
 		{
 			return false;
@@ -416,7 +416,7 @@ class Db
 
         // drop, create, add id
 		$sSql = "
-            DROP TABLE IF EXISTS `" . $sTable . "`; 
+            DROP TABLE IF EXISTS `" . $sTable . "`;
             CREATE TABLE IF NOT EXISTS `" . $sTable . "` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
             ";
@@ -484,7 +484,7 @@ class Db
 		catch (\Exception $oException)
 		{
 			\MVC\Error::exception($oException);
-			
+
 			return false;
 		}
 
@@ -571,7 +571,7 @@ class Db
                 }
 			}
 		}
-		
+
 		INSERT: {
 
             foreach ($aInsert as $sKey => $aValue)
@@ -595,12 +595,12 @@ class Db
 				catch (\Exception $oException)
 				{
 					\MVC\Error::exception($oException);
-					
+
 					return false;
 				}
 			}
         }
-		
+
 		UPDATE: {
 
             foreach ($this->getFieldArray() as $sKey => $sValue)
@@ -629,7 +629,7 @@ class Db
                 }
             }
 		}
-			
+
 		return true;
 	}
 
@@ -702,10 +702,10 @@ class Db
     {
         $aConstraint = array();
         $sSql = "
-            SELECT 
-                COLUMN_NAME, 
-                CONSTRAINT_NAME, 
-                REFERENCED_COLUMN_NAME, 
+            SELECT
+                COLUMN_NAME,
+                CONSTRAINT_NAME,
+                REFERENCED_COLUMN_NAME,
                 REFERENCED_TABLE_NAME
             FROM information_schema.KEY_COLUMN_USAGE
             WHERE 1
@@ -986,7 +986,7 @@ class Db
      */
     public function count(DTArrayObject $oDTArrayObject = null, DTArrayObject $oDTArrayObjectOption = null)
     {
-        $sDTClassName = Request::getInstance()->getModule() . '\DataType\\' . $this->getGenerateDataTypeClassName();
+        $sDTClassName = Route::getCurrent()->get_module() . '\DataType\\' . $this->getGenerateDataTypeClassName();
         $aPossibleToken = array('=', '<', '<=', '>', '>=', 'LIKE', '!=');
 
         $sSql = "SELECT COUNT(id) AS iAmount FROM `" . $this->sTableName . "` \nWHERE  1\n";
