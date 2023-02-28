@@ -1,7 +1,6 @@
 
 # myMVC_module_DB
 
-<img src="https://github.com/gueff/myMVC_module_DB/actions/workflows/super-linter.yml/badge.svg">
 
 - [1. Requirements](#1)
 - [2. Repository](#2)
