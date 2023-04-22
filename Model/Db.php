@@ -1243,6 +1243,7 @@ class Db
         // creating a DataType Class according to the table
         $this->generateDataType();
 
-        Cache::autoDeleteCache();
+        // delete caches explicitely related to the referenced table
+        Cache::autoDeleteCache($this->sCacheKeyTableName);
     }
 }
