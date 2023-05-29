@@ -46,5 +46,6 @@ DataType/DB/Foreign.php
 etc/config/_init.php
 etc/config/DataType/MODULE_DB_DATATYPE_DB.php
 etc/config/DataType/MODULE_DB_DATATYPE_SQL.php
+Model/DbInit.php
 Model/DbPDO.php
 Model/Db.php

@@ -22,6 +22,7 @@ use DB\DataType\DB\TableDataType;
 use MVC\Cache;
 use MVC\DataType\DTArrayObject;
 use MVC\DataType\DTKeyValue;
+use MVC\Debug;
 use MVC\Error;
 use MVC\Event;
 use MVC\Generator\DataType;
@@ -752,7 +753,7 @@ class Db
      * @return TableDataType
      * @throws \ReflectionException
      */
-    public function create (TableDataType $oTableDataType = null)
+    public function create(TableDataType $oTableDataType = null)
     {
         if (null === $oTableDataType)
         {
@@ -873,6 +874,40 @@ class Db
     }
 
     /**
+     * @param \DB\DataType\DB\TableDataType|null $oTableDataType
+     * @param bool                               $bStrict
+     * @return array
+     * @throws \ReflectionException
+     */
+    public function retrieveTupel(TableDataType $oTableDataType = null, bool $bStrict = false)
+    {
+        $oDTArrayObject = DTArrayObject::create();
+
+        foreach ($oTableDataType->getPropertyArray() as $sProperty => $sValue)
+        {
+            if (false === $bStrict && true === empty($sValue))
+            {
+                continue;
+            }
+
+            $oDTArrayObject->add_aKeyValue(
+                DTKeyValue::create()->set_sKey($sProperty)->set_mOptional1('=')->set_sValue($sValue)
+            );
+        }
+
+        $aResult = $this->retrieve(
+            $oDTArrayObject
+        );
+
+        if (true === empty($aResult))
+        {
+            return TableDataType::create();
+        }
+
+        return current($aResult);
+    }
+
+    /**
      * @param DTArrayObject|null $oDTArrayObject
      * @param DTArrayObject|null $oDTArrayObjectOption
      * @return array
@@ -926,6 +961,8 @@ class Db
         );
 
         $oStmt = $this->oDbPDO->prepare($sSql);
+
+        (null === $oDTArrayObject) ? $oDTArrayObject = DTArrayObject::create() : false;
 
         // bind Values
         foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
@@ -1069,23 +1106,42 @@ class Db
 
     /**
      * UPDATE table SET x = y WHERE id
-     * @param TableDataType|null $oTableDataType
-     * @param DTArrayObject|null $oDTArrayObjectSet
-     * @param DTArrayObject|null $oDTArrayObjectWhere
+     * @param \DB\DataType\DB\TableDataType|null $oTableDataType
+     * @param \MVC\DataType\DTArrayObject|null   $oDTArrayObjectWhere
+     * @param bool                               $bStrict
      * @return bool
      * @throws \ReflectionException
      */
-    public function update (TableDataType $oTableDataType = null, DTArrayObject $oDTArrayObjectSet = null, DTArrayObject $oDTArrayObjectWhere = null)
+    public function update(TableDataType $oTableDataType = null, DTArrayObject $oDTArrayObjectWhere = null, bool $bStrict = false)
     {
-        if (is_null($oTableDataType) || is_null($oDTArrayObjectSet))
+        if (is_null($oTableDataType))
         {
             return false;
+        }
+
+        $oDTArrayObjectSet = DTArrayObject::create();
+
+        foreach ($oTableDataType->getPropertyArray() as $sProperty => $sValue)
+        {
+            if (false === $bStrict && true === empty($sValue))
+            {
+                continue;
+            }
+
+            $oDTArrayObjectSet->add_aKeyValue(
+                DTKeyValue::create()->set_sKey($sProperty)->set_mOptional1('=')->set_sValue($sValue)
+            );
         }
 
         $sSql = "UPDATE `" . $this->sTableName . "` SET \n";
         $sSqlExplain =  $sSql;
 
+        Debug::display(
+            $oDTArrayObjectSet->get_aKeyValue()
+        );
+
         /**
+         * Set
          * @var integer $iKey
          * @var  DTKeyValue $oDTKeyValueSet
          */
@@ -1097,22 +1153,14 @@ class Db
 
         $sSql = substr($sSql, 0,-1) . "\n";
         $sSqlExplain = substr($sSqlExplain, 0,-1) . "\n";
+        $sWhere = "WHERE 1\n";
 
         /**
-         * default: where id = id
+         * Where
          */
-        if (is_null($oDTArrayObjectWhere))
+        foreach ($oDTArrayObjectWhere->get_aKeyValue() as $iKey => $oDTDBKeyValueWhere)
         {
-            $sWhere = "WHERE `id` = '" . (int) $oTableDataType->get_id() . "'\n";
-        }
-        else
-        {
-            $sWhere = "WHERE 1\n";
-
-            foreach ($oDTArrayObjectWhere->get_aKeyValue() as $iKey => $oDTDBKeyValueWhere)
-            {
-                $sWhere.= 'AND `' . $oDTDBKeyValueWhere->get_sKey() . '` = ' . "'" . $oDTDBKeyValueWhere->get_sValue() . "' \n";
-            }
+            $sWhere.= 'AND `' . $oDTDBKeyValueWhere->get_sKey() . '` = ' . "'" . $oDTDBKeyValueWhere->get_sValue() . "' \n";
         }
 
         $sSql.= $sWhere;
@@ -1164,11 +1212,66 @@ class Db
     }
 
     /**
+     * updates a single, concrete dataset (a tupel)
+     * @param \DB\DataType\DB\TableDataType $oTableDataType
+     * @param bool                          $bStrict
+     * @return bool
+     * @throws \ReflectionException
+     */
+    public function updateTupel(TableDataType $oTableDataType, bool $bStrict = false)
+    {
+        $oDTArrayObject = DTArrayObject::create();
+
+        foreach ($oTableDataType->getPropertyArray() as $sProperty => $sValue)
+        {
+            if (false === $bStrict && true === empty($sValue))
+            {
+                continue;
+            }
+
+            $oDTArrayObject->add_aKeyValue(
+                DTKeyValue::create()->set_sKey($sProperty)->set_mOptional1('=')->set_sValue($sValue)
+            );
+        }
+
+        $bUpdate = $this->update($oTableDataType, $oDTArrayObject);
+
+        return $bUpdate;
+    }
+
+    /**
+     * @param \DB\DataType\DB\TableDataType $oTableDataType
+     * @param bool                          $bStrict
+     * @return bool
+     * @throws \ReflectionException
+     */
+    public function deleteTupel(TableDataType $oTableDataType, bool $bStrict = false)
+    {
+        $oDTArrayObject = DTArrayObject::create();
+
+        foreach ($oTableDataType->getPropertyArray() as $sProperty => $sValue)
+        {
+            if (false === $bStrict && true === empty($sValue))
+            {
+                continue;
+            }
+
+            $oDTArrayObject->add_aKeyValue(
+                DTKeyValue::create()->set_sKey($sProperty)->set_mOptional1('=')->set_sValue($sValue)
+            );
+        }
+
+        $bDelete = $this->delete($oDTArrayObject);
+
+        return $bDelete;
+    }
+
+    /**
      * @param DTArrayObject|null $oDTArrayObject
      * @return bool
      * @throws \ReflectionException
      */
-    public function delete (DTArrayObject $oDTArrayObject = null)
+    public function delete(DTArrayObject $oDTArrayObject = null)
     {
         if (is_null($oDTArrayObject))
         {
@@ -1185,8 +1288,10 @@ class Db
          */
         foreach ($oDTArrayObject->get_aKeyValue() as $iKey => $oDTKeyValue)
         {
-            $sSql.= 'AND `' . $oDTKeyValue->get_sKey() . '` = :' . $oDTKeyValue->get_sKey() . "\n";
-            $sSqlExplain.= 'AND `' . $oDTKeyValue->get_sKey() . '` = ' . "'" . $oDTKeyValue->get_sValue() . "'\n";
+            $sComparator = $oDTKeyValue->get_mOptional1();
+            (true === empty($sComparator)) ? $sComparator = '=' : false;
+            $sSql.= 'AND `' . $oDTKeyValue->get_sKey() . '` ' . $sComparator . ' :' . $oDTKeyValue->get_sKey() . "\n";
+            $sSqlExplain.= 'AND `' . $oDTKeyValue->get_sKey() . '` ' . $sComparator . ' ' . "'" . $oDTKeyValue->get_sValue() . "'\n";
         }
 
         Event::run(

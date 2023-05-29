@@ -1,14 +1,21 @@
 
 # myMVC_module_DB
 
-
 - [1. Requirements](#1)
 - [2. Repository](#2)
 - [3. Creation](#3)
-    - [3.1. Examples](#3-1)
-    - [3.2. Explained](#3-2)
-- [4. Events](#4)
-    - [4.1. Logging SQL](#4-1)
+  - [3.1. Create DB Config](#3-1)
+  - [3.2. Creating a concrete Table Class](#3-2)
+  - [3.3. Creating a DBInit class that is used for each DB access](#3-3)
+- [4. Usage](#4)
+  - [4.1. count](#4-1)
+  - [4.2. create](#4-2)
+  - [4.3. retrieve](#4-3)
+  - [4.4. update](#4-4)
+  - [4.5. delete](#4-5)
+  - [4.6. SQL](#4-6)
+- [5. Events](#5)
+  - [5.1. Logging SQL](#5-1)
 
 ---
 
@@ -21,8 +28,10 @@
   - `pdo` extension
 - myMVC 3.2.x
   - `git clone --branch 3.2.x https://github.com/gueff/myMVC.git myMVC_3.2.x`
-  - github: <https://github.com/gueff/myMVC/tree/3.2.x>
   - Docs: <https://mymvc.ueffing.net/>
+  - github: <https://github.com/gueff/myMVC/tree/3.2.x>
+
+---
 
 <a id="2"></a>
 
@@ -30,118 +39,35 @@
 
 - <https://github.com/gueff/myMVC_module_DB>
 
+---
+
 <a id="3"></a>
 
 ## 3. Creation
 
 <a id="3-1"></a>
 
-### 3.1. Examples
+### 3.1. Create DB Config
 
-_PHP Class_  
-as a Representation of the DB Table
 
-_Most simple_
+In your main module's config folder create your DB Config.
+(@see https://mymvc.ueffing.net/3.2.x/configuration#Modules-config-folder)
 
+
+_Db Config example for `develop` environments_
 ~~~php
-<?php
+//-------------------------------------------------------------------------------------
+// Module DB
 
-class TableFoo extends \DB\Model\Db
-{ 
-    /**
-    * no need to declare field `id` - this will be always declared automatically
-    * @var array 
-    */
-    protected $aFields = array(
-        'hash'                  => "varchar(32) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL COMMENT  'aus: recipientEmail,reason,+SALT'",
-        'dateTimeDelivered'     => 'datetime',
-    );
-    
-    /**
-    * TableFoo constructor.
-    * @param array $aDbConfig
-    */
-    public function __construct(array $aDbConfig = array())
-    {
-        // basic creation of the table
-        parent::__construct(
-            $this->aFields, 
-            $aDbConfig
-        );
-    }
-}
-~~~
+$aConfig['MODULE']['DB'] = array(
 
-- creates the Table `TableFoo`
-  - Table has fields `hash`, `dateTimeDelivered` as declared in property `$aFields`
-    - 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically
-- generates a DataType Class `DataType/DTFooModelTableFoo.php`
-
----
-
-_Creating a Table and adding a Foreign Key_
-
-~~~php
-<?php
-
-namespace LCP\Model;
-
-use DB\DataType\DB\Foreign;
-
-class TableUrl extends \DB\Model\Db
-{
-    /**
-    * @var array
-    */
-    protected $aField = array(
-        'urlOriginal'           => "tinytext        CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
-        'urlMod'                => "tinytext        CHARACTER SET utf8 COLLATE utf8_bin NOT NULL",
-    );
-    
-    /**
-    * TableUrl constructor.
-    * @param array $aDbConfig
-    * @throws \ReflectionException
-    */
-    public function __construct(array $aDbConfig = array())
-    {
-        parent::__construct(
-            $this->aField,
-            $aDbConfig
-        );
-        
-        $this->setForeignKey(
-            Foreign::create()
-                ->set_sForeignKey('id_LCPModelTableLCP')
-                ->set_sReferenceTable('LCPModelTableLCP')
-                ->set_sOnDelete(Foreign::DELETE_CASCADE)
-        );
-    }
-}
-~~~
-
-- creates the Table "TableUrl"
-- Table has fields "urlOriginal", "urlMod"
-- The foreign key `id_LCPModelTableLCP` is added by method `setForeignKey()`
-- generates a DataType Class "DataType/DTTableUrl.php" in the Module where the TableUrl resides
-
----
-
-_Usage_
-
-~~~php
-$oTableUrl = new TableUrl($aDbConfig);
-~~~
-
-_Db Config_
-
-~~~php
-$aDbConfig = array(
     'db' => array(
-        'host' => 'localhost',
-        'username' => '',
-        'password' => '',
-        'dbname' => '',
+        'type' => 'mysql',
+        'host' => '127.0.0.1',
+        'port' => 3306,
+        'username' => getenv('db.username'),
+        'password' => getenv('db.password'),
+        'dbname' => getenv('db.dbname'),
         'charset' => 'utf8'
     ),
     'caching' => array(
@@ -150,10 +76,10 @@ $aDbConfig = array(
     ),
     'logging' => array(
         'log_output' => 'FILE',
-        
+
         // consider to turn it on for develop and test environments only
         'general_log' => 'ON',
-        
+
         // 1) make sure write access is given to the folder
         // as long as the db user is going to write and not the webserver user
         // 2) consider a logrotate mechanism for this logfile as it may grow quickly
@@ -161,206 +87,381 @@ $aDbConfig = array(
     )
 );
 ~~~
+- here we make use of `getenv()`, which means we store our secrets in the `public/.env` file.
+
 
 <a id="3-2"></a>
 
-### 3.2. Explained
+### 3.2. Creating a concrete Table Class
 
-_Fields_
+_PHP Class_
+as a Representation of the DB Table
+
+
+_file: `modules/Foo/Model/DB/TableFoo.php`_
+~~~php
+<?php
+
+namespace Foo\Model\DB;
+
+use DB\Model\Db;
+
+
+class TableUser extends Db
+{
+    /**
+     * @var array
+     */
+    protected $aField = array(
+        'email'     => "varchar(255) COLLATE utf8_general_ci NOT NULL",
+        'active'    => "int(1) DEFAULT '0' NOT NULL",
+        'uuid'      => "varchar(36) COLLATE utf8_general_ci COMMENT 'uuid permanent' NOT NULL",
+        'uuidtmp'      => "varchar(36) COLLATE utf8_general_ci COMMENT 'uuid; changes on create|login' NOT NULL",
+        'password'  => "varchar(60) COLLATE utf8_general_ci COMMENT 'password_hash()' NOT NULL",
+        'nickname'  => "varchar(10) COLLATE utf8_general_ci NOT NULL",
+        'forename'  => "varchar(25) COLLATE utf8_general_ci NOT NULL",
+        'lastname'  => "varchar(25) COLLATE utf8_general_ci NOT NULL",
+    );
+
+    /**
+     * @param array $aDbConfig
+     * @throws \ReflectionException
+     */
+    public function __construct(array $aDbConfig = array())
+    {
+        // basic creation of the table
+        parent::__construct(
+            $this->aField,
+            $aDbConfig
+        );
+    }
+}
+~~~
+
+- creates the Table `TableUser`
+  - Table has several fields from `email` ... `lastname` as declared in property `$aField`
+    - 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically
+    - do not add these fields by manually
+- generates a DataType Class `DataType/DTFooModelDBTableUser.php`
+
+---
+
+**Creating a Table and adding a Foreign Key**
+
+
+_file: `modules/Foo/Model/DB/TableFoo.php`_
+~~~php
+<?php
+
+namespace Foo\Model\DB;
+
+use DB\Model\Db;
+use DB\DataType\DB\Foreign;
+
+class TableUser extends Db
+{
+    /**
+     * @var array
+     */
+    protected $aField = array(
+        'email'     => "varchar(255) COLLATE utf8_general_ci NOT NULL",
+        'active'    => "int(1) DEFAULT '0' NOT NULL",
+        'uuid'      => "varchar(36) COLLATE utf8_general_ci COMMENT 'uuid permanent' NOT NULL",
+        'uuidtmp'      => "varchar(36) COLLATE utf8_general_ci COMMENT 'uuid; changes on create|login' NOT NULL",
+        'password'  => "varchar(60) COLLATE utf8_general_ci COMMENT 'password_hash()' NOT NULL",
+        'nickname'  => "varchar(10) COLLATE utf8_general_ci NOT NULL",
+        'forename'  => "varchar(25) COLLATE utf8_general_ci NOT NULL",
+        'lastname'  => "varchar(25) COLLATE utf8_general_ci NOT NULL",
+    );
+
+    /**
+     * @param array $aDbConfig
+     * @throws \ReflectionException
+     */
+    public function __construct(array $aDbConfig = array())
+    {
+        // basic creation of the table
+        parent::__construct(
+            $this->aField,
+            $aDbConfig
+        );
+        $this->setForeignKey(
+            Foreign::create()
+                ->set_sForeignKey('id_TableGroup')
+                ->set_sReferenceTable('FooModelDBTableGroup')
+        );
+    }
+}
+~~~
+
+- creates the Table `TableUser`
+  - Table has several fields from `email` ... `lastname` as declared in property `$aField`
+    - 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically
+    - do not add these fields by manually
+- The foreign key `id_TableGroup` -pointing to table `FooModelDBTableGroup`- is added by method `setForeignKey()`
+- generates a DataType Class `DataType/DTFooModelDBTableUser.php`
+
+---
+
+<a id="3-3"></a>
+
+### 3.3. Creating a DBInit class that is used for each DB access
+
+
+_file: `modules/Foo/Model/DB.php`_
+~~~php
+<?php
+
+/**
+ * - register your db table classes as static properties.
+ * - add a doctype to each static property
+ * - these doctypes must contain the vartype information about the certain class
+ * @example
+ *      @var Foo\Model\DB\TableUser
+ *      public static $oTableUser;
+ * ---
+ * [!]  it is important to declare the vartype expanded with a full path
+ *      avoid to make use of `use ...` support
+ *      otherwise the classes could not be read correctly
+ */
+
+namespace Foo\Model;
+
+use DB\Model\DbInit;
+
+class DB extends DbInit
+{
+    /**
+     * @var \Foo\Model\DB\TableUser
+     */
+    public static $oTableUser;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+}
+~~~
+
+---
+
+<a id="4"></a>
+
+## 4. Usage
+
+
+In your main Controller class just create a new Instaciation of your DBInit class.
+A good place is the `__construct()` method.
 
 ~~~php
 /**
- * @var array
+ * Index constructor.
+ * @throws \ReflectionException
  */
-protected $aFields = array(
-    'name'          => 'varchar(255)  COLLATE utf8mb4_bin NOT NULL    COMMENT "Company"',
-    'ip'            => 'varchar(19)   COLLATE utf8mb4_bin NOT NULL    COMMENT "IP Adresse"',
-    'success'       => 'int(1)        COMMENT ""',
-    'datetimeStart' => 'datetime      COMMENT "Phase Beginn"',
-    'datetimeEnd'   => 'datetime      COMMENT "Phase Ende"',
-    'kwStart'       => 'int(2)        NOT NULL COMMENT "KW Start"',
-    'kwEnd'         => 'int(2)        NOT NULL  COMMENT "KW Ende"',
-    'description'   => 'text          COLLATE utf8mb4_bin NOT NULL    COMMENT "Beschreibung"'
-);
+public function __construct ()
+{
+    new DB();
+}
 ~~~
 
-_`create` (INSERT)_  
-therefore an object of its related Datatype must be instaciated and given to the method `create`. Here e.g. with Datatype "DTMandosModelDBTableUser" to TableClass "modules/Mandos/Model/DB/TableUser":
+after that you can access your TableClass from everywhere - even from frontend templates:
 
+
+_Usage_
 ~~~php
-// inside TableClass:
-$this->create(DTMandosModelDBTableUser::create()
-    ->set_id(1)
-    ->set_id_Status(1)
-    ->set_id_Group(1)
-    ->set_id_UserAdmin(1)
-    ->set_gender('male')
-    ->set_name('')
-    ->set_pass('$1y$10$a8znPSGLJxKqKHbKi9u8ee7Vc67CeRAHAK2cd1MQX3etm5fdOkRH4')
-    ->set_firstname('Portal')
-    ->set_lastname('Admin')
-    ->set_email('foo@example.com')
-    ->set_timezone('Europe/Berlin')
-    ->set_description('darf ClientAdmin anlegen')
-    ->set_stampChange($sNow)
-    ->set_stampCreate($sNow));
+DB::$oTableUser->...<method>...
 ~~~
 
-_`count`_
+
+<a id="4-1"></a>
+
+### 4.1. count
+
 
 ~~~php
 // Amount of all Datasets
-$iAmount = $this->count();
+$iAmount = DB::$oTableUser->count()
 
 // Amount of specific Datasets
-$iAmount = $this->count(
+$iAmount = DB::$oTableUser->count(
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
                 ->set_sKey('stampChange')
                 ->set_mOptional1('=')
                 ->set_sValue('2021-06-19')
-    )  
+    )
 );
 ~~~
 
-_`get`_
+
+<a id="4-2"></a>
+
+### 4.2. create
+
+_`create` (INSERT)_
+therefore an object of its related Datatype must be instaciated and given to the method `create`.
+Here e.g. with Datatype "DTFooModelDBTableUser" to TableClass "modules/Foo/Model/DB/TableUser":
 
 ~~~php
-// get all Datasets
-$aDataType = $this->get();
-
-// get first 30 Datasets (LIMIT 0,30)
-$aDataType = $this->get(
-    0,
-    null,
-    DTArrayObject::create()
-        ->add_aKeyValue(
-            DTKeyValue::create()->set_sValue('LIMIT 0,30')
-    )   
-);
-
-// get Dataset with id:1
-$aDataType = $this->get(1);
-
-// get specific Datasets
-$aDataType = $this->get(
-    0,
-    DTArrayObject::create()
-        ->add_aKeyValue(
-            DTKeyValue::create()
-                ->set_sKey('stampChange')
-                ->set_mOptional1('=')
-                ->set_sValue('2021-06-19')
-    ) 
-);
-    
-// get Datasets with sort order
-$aDataType = $this->get(
-    0,
-    DTArrayObject::create()
-        ->add_aKeyValue(
-            DTKeyValue::create()
-                ->set_sKey('stampChange')
-                ->set_mOptional1('=')
-                ->set_sValue('2021-06-19')
-        ),
-    DTArrayObject::create()
-        ->add_aKeyValue(
-            DTKeyValue::create()
-                ->set_sValue('ORDER BY id DESC')
-        )
+DB::$oTableUser->create(
+    DTFooModelDBTableUser::create()
+        ->set_id_TableGroup(1)
+        ->set_uuid(Strings::uuid4())
+        ->set_email('foo@example.com')
+        ->set_forename('foo')
+        ->set_lastname('bar')
+        ->set_nickname('foo')
+        ->set_password(password_hash('...password...', PASSWORD_DEFAULT))
+        ->set_active(1)
+        ->set_stampChange(date('Y-m-d H:i:s'))
+        ->set_stampCreate(date('Y-m-d H:i:s'))
 );
 ~~~
 
-_`retrieve`_
 
+<a id="4-3"></a>
+
+#### 4.3. retrieve
+
+`retrieveTupel` asks for a specific Tupel and returns the DataType Object according to the requested Table.
+
+
+_`retrieveTupel` - identified by `id`_
 ~~~php
-    // get specific Datasets
-    $aDataType = $this->retrieve(
-        DTArrayObject::create()
-            ->add_aKeyValue(
-                DTKeyValue::create()
-                    ->set_sKey('stampChange')
-                    ->set_mOptional1('LIKE')
-                    ->set_sValue('2021-06-19')
-             ); 
-    );
-    
-    // get Datasets with sort order
-    $aDataType = $this->retrieve(
+/** @var \Foo\DataType\DTFooModelDBTableUser $oDTFooModelDBTableUser */
+$oDTFooModelDBTableUser = DB::$oTableUser->retrieveTupel(
+    DTFooModelDBTableUser::create()
+        ->set_id(2)
+)
+~~~
+- get User Object whose id=2
+
+
+`retrieve` returns an array of DataType Objects according to the requested Table.
+
+_`retrieve`: get all Datasets_
+~~~php
+/** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
+$aDTFooModelDBTableUser = DB::$oTableUser->retrieveTupel();
+~~~
+
+_`retrieve`: get specific Datasets_
+~~~php
+/** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
+$aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
                 ->set_sKey('stampChange')
                 ->set_mOptional1('LIKE')
                 ->set_sValue('2021-06-19')
+            );
+);
+~~~
+
+_`retrieve`: get Datasets with sort order_
+~~~php
+/** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
+$aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sKey('email')
+                ->set_mOptional1('LIKE')
+                ->set_sValue('%@example.com%')
         ),
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
-                ->set_sValue('ORDER BY id DESC')
+                ->set_sValue('ORDER BY id ASC')
         )
 );
 ~~~
 
-_`updateTupel`_
-
+_`retrieve`: get first 30 Datasets (LIMIT 0,30)_
 ~~~php
-// deliver the appropriate (modified) DataType Object to the method
-$bSuccess = $this->updateTupel($oTableDataType);
-~~~
-
-- the equivalent dataset tupel with object's `id` will be updated.
-
-_`update`_
-
-~~~php
-$bSuccess = $this->update(
-    $oTableDataType,
-    // set
+/** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
+$aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
+    null,
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
-                ->set_key('stampChange')
-                ->set_sValue('2021-06-19 00:00:00')
-        ),
+                ->set_sValue('LIMIT 0,30')
+        )
+)
+~~~
+
+
+<a id="4-4"></a>
+
+#### 4.4. update
+
+
+_`updateTupel`: update this specific Tupel - identified by `id`_
+~~~php
+/** @var boolean $bSuccess */
+$bSuccess = DB::$oTableUser->updateTupel(
+    DTFooModelDBTableUser::create()
+        ->set_id(1)
+        ->set_nickname('XYZ')
+);
+~~~
+- the equivalent dataset tupel with object's `id` will be updated.
+
+_`update`: update all Tupel which are affected by the where clause_
+~~~php
+/** @var boolean $bSuccess */
+$bSuccess = DB::$oTableUser->update(
+    DTFooModelDBTableUser::create()
+        ->set_active('1'),
     // where
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
-                ->set_key('stampChange')
-                ->set_mOptional1('<')
-                ->set_sValue('2021-06-19 00:00:00')
-        ),
-);
-~~~
-
-_`deleteTupel`_
-
-~~~php
-// deliver the appropriate DataType Object to the method
-$bSuccess = $this->delete($oTableDataType);
-~~~
-
-_`delete`_
-
-~~~php
-$bSuccess = $this->delete(
-    // set
-    DTArrayObject::create()
-        ->add_aKeyValue(
-            DTKeyValue::create()
-                ->set_key('stampChange')
-                ->set_sValue('2021-06-19 00:00:00')
+                ->set_sKey('active')
+                ->set_mOptional1('=')
+                ->set_sValue('0')
         )
 );
 ~~~
 
----
+
+<a id="4-5"></a>
+
+#### 4.5. delete
+
+_`deleteTupel`: delete this specific Tupel - identified by `id`_
+~~~php
+/** @var boolean $bSuccess */
+$bSuccess = DB::$oTableUser->deleteTupel(
+    DTFooModelDBTableUser::create()
+        ->set_id(2)
+)
+~~~
+
+_`delete`: delete all Tupel which are affected by the where clause_
+~~~php
+$bSuccess = DB::$oTableUser->delete(
+    // where
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sKey('stampCreate')
+                ->set_mOptional1('<')
+                ->set_sValue('2023-06-19 00:00:00')
+        )
+);
+~~~
+
+<a id="4-6"></a>
+
+#### 4.6. SQL
 
 _`SQL`_
-
 ~~~php
 /**
  * @param DTLCPModelTableLCP $oDTLCPModelTableLCP
@@ -374,16 +475,18 @@ public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
         RIGHT JOIN `LCPModelTableUrl` AS URL ON CLICK.id_LCPModelTableUrl = URL.id
         WHERE 1
         AND URL.id_LCPModelTableLCP = " . (int) $oDTLCPModelTableLCP->get_id();
-    
+
     $aResult = $this->oDbPDO->fetchAll($sSql);
-    
+
     return $aResult;
 }
 ~~~
 
-<a id="4"></a>
+---
 
-## 4. Events
+<a id="5"></a>
+
+## 5. Events
 
 ~~~text
 db.model.db.setSqlLoggingState.exception
@@ -408,9 +511,9 @@ db.model.db.delete.sql
 db.model.db.delete.exception
 ~~~
 
-<a id="4-1"></a>
+<a id="5-1"></a>
 
-### 4.1. Logging SQL
+### 5.1. Logging SQL
 
 you can log SQL queries by listening to events.
 
