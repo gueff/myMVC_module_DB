@@ -98,7 +98,7 @@ _PHP Class_
 as a Representation of the DB Table
 
 
-_file: `modules/Foo/Model/DB/TableFoo.php`_
+_file: `modules/Foo/Model/DB/TableUser.php`_
 ~~~php
 <?php
 
@@ -149,7 +149,7 @@ class TableUser extends Db
 **Creating a Table and adding a Foreign Key**
 
 
-_file: `modules/Foo/Model/DB/TableFoo.php`_
+_file: `modules/Foo/Model/DB/TableUser.php`_
 ~~~php
 <?php
 
