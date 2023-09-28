@@ -49,3 +49,4 @@ etc/config/DataType/MODULE_DB_DATATYPE_SQL.php
 Model/DbInit.php
 Model/DbPDO.php
 Model/Db.php
+Trait/DbInitTrait.php

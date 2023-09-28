@@ -8,12 +8,14 @@
   - [3.2. Creating a concrete Table Class](#3-2)
   - [3.3. Creating a DBInit class that is used for each DB access](#3-3)
 - [4. Usage](#4)
-  - [4.1. count](#4-1)
-  - [4.2. create](#4-2)
-  - [4.3. retrieve](#4-3)
-  - [4.4. update](#4-4)
-  - [4.5. delete](#4-5)
-  - [4.6. SQL](#4-6)
+  - [4.1. create](#4-1)
+  - [4.2. retrieve](#4-2)
+  - [4.3. update](#4-3)
+  - [4.4. delete](#4-4)
+  - [4.5. count](#4-5)
+  - [4.6. checksum](#4-6)
+  - [4.7. getFieldInfo](#4-7)
+  - [4.8. SQL](#4-8)
 - [5. Events](#5)
   - [5.1. Logging SQL](#5-1)
 
@@ -24,12 +26,12 @@
 ## 1. Requirements
 
 - Linux
-- php >= 7.4
+- php >= 8
   - `pdo` extension
-- myMVC 3.2.x
-  - `git clone --branch 3.2.x https://github.com/gueff/myMVC.git myMVC_3.2.x`
+- myMVC 3.3.x
+  - `git clone --branch 3.3.x https://github.com/gueff/myMVC.git myMVC_3.3.x`
   - Docs: <https://mymvc.ueffing.net/>
-  - github: <https://github.com/gueff/myMVC/tree/3.2.x>
+  - github: <https://github.com/gueff/myMVC/tree/3.3.x>
 
 ---
 
@@ -51,7 +53,7 @@
 
 
 In your main module's config folder create your DB Config.
-(@see https://mymvc.ueffing.net/3.2.x/configuration#Modules-config-folder)
+(@see https://mymvc.ueffing.net/3.3.x/configuration#Modules-config-folder)
 
 
 _Db Config example for `develop` environments_
@@ -78,7 +80,7 @@ $aConfig['MODULE']['DB'] = array(
         'log_output' => 'FILE',
 
         // consider to turn it on for develop and test environments only
-        'general_log' => 'ON',
+        'general_log' => strtoupper('on'), # on | off
 
         // 1) make sure write access is given to the folder
         // as long as the db user is going to write and not the webserver user
@@ -87,7 +89,7 @@ $aConfig['MODULE']['DB'] = array(
     )
 );
 ~~~
-- here we make use of `getenv()`, which means we store our secrets in the `public/.env` file.
+- here we make use of `getenv()`, which means we store our secrets in the `/.env` file.
 
 
 <a id="3-2"></a>
@@ -218,7 +220,7 @@ _file: `modules/Foo/Model/DB.php`_
  * - these doctypes must contain the vartype information about the certain class
  * @example
  *      @var Foo\Model\DB\TableUser
- *      public static $oTableUser;
+ *      public static $oFooModelDBTableUser;
  * ---
  * [!]  it is important to declare the vartype expanded with a full path
  *      avoid to make use of `use ...` support
@@ -228,21 +230,16 @@ _file: `modules/Foo/Model/DB.php`_
 namespace Foo\Model;
 
 use DB\Model\DbInit;
+use DB\Trait\DbInitTrait;
 
 class DB extends DbInit
 {
+    use DbInitTrait;
+    
     /**
      * @var \Foo\Model\DB\TableUser
      */
-    public static $oTableUser;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    public static $oFooModelDBTableUser;
 }
 ~~~
 
@@ -253,17 +250,17 @@ class DB extends DbInit
 ## 4. Usage
 
 
-In your main Controller class just create a new Instaciation of your DBInit class.
+In your main **Controller** class just create a new Instanciation of your DBInit class.
 A good place is the `__construct()` method.
 
 ~~~php
-/**
- * Index constructor.
- * @throws \ReflectionException
- */
+namespace Foo\Controller;
+
+use Foo\Model\DB;
+
 public function __construct ()
 {
-    new DB();
+    DB::init();
 }
 ~~~
 
@@ -272,42 +269,19 @@ after that you can access your TableClass from everywhere - even from frontend t
 
 _Usage_
 ~~~php
-DB::$oTableUser->...<method>...
+DB::$oFooModelDBTableUser->...<method>...
 ~~~
-
 
 <a id="4-1"></a>
 
-### 4.1. count
-
-
-~~~php
-// Amount of all Datasets
-$iAmount = DB::$oTableUser->count()
-
-// Amount of specific Datasets
-$iAmount = DB::$oTableUser->count(
-    DTArrayObject::create()
-        ->add_aKeyValue(
-            DTKeyValue::create()
-                ->set_sKey('stampChange')
-                ->set_mOptional1('=')
-                ->set_sValue('2021-06-19')
-    )
-);
-~~~
-
-
-<a id="4-2"></a>
-
-### 4.2. create
+### 4.1. create
 
 _`create` (INSERT)_
 therefore an object of its related Datatype must be instaciated and given to the method `create`.
 Here e.g. with Datatype "DTFooModelDBTableUser" to TableClass "modules/Foo/Model/DB/TableUser":
 
 ~~~php
-DB::$oTableUser->create(
+DB::$oFooModelDBTableUser->create(
     DTFooModelDBTableUser::create()
         ->set_id_TableGroup(1)
         ->set_uuid(Strings::uuid4())
@@ -323,9 +297,9 @@ DB::$oTableUser->create(
 ~~~
 
 
-<a id="4-3"></a>
+<a id="4-2"></a>
 
-#### 4.3. retrieve
+#### 4.2. retrieve
 
 `retrieveTupel` asks for a specific Tupel and returns the DataType Object according to the requested Table.
 
@@ -333,7 +307,7 @@ DB::$oTableUser->create(
 _`retrieveTupel` - identified by `id`_
 ~~~php
 /** @var \Foo\DataType\DTFooModelDBTableUser $oDTFooModelDBTableUser */
-$oDTFooModelDBTableUser = DB::$oTableUser->retrieveTupel(
+$oDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieveTupel(
     DTFooModelDBTableUser::create()
         ->set_id(2)
 )
@@ -346,13 +320,13 @@ $oDTFooModelDBTableUser = DB::$oTableUser->retrieveTupel(
 _`retrieve`: get all Datasets_
 ~~~php
 /** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-$aDTFooModelDBTableUser = DB::$oTableUser->retrieveTupel();
+$aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieveTupel();
 ~~~
 
 _`retrieve`: get specific Datasets_
 ~~~php
 /** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-$aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
+$aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
@@ -366,7 +340,7 @@ $aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
 _`retrieve`: get Datasets with sort order_
 ~~~php
 /** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-$aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
+$aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
@@ -385,7 +359,7 @@ $aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
 _`retrieve`: get first 30 Datasets (LIMIT 0,30)_
 ~~~php
 /** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-$aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
+$aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
     null,
     DTArrayObject::create()
         ->add_aKeyValue(
@@ -396,15 +370,15 @@ $aDTFooModelDBTableUser = DB::$oTableUser->retrieve(
 ~~~
 
 
-<a id="4-4"></a>
+<a id="4-3"></a>
 
-#### 4.4. update
+#### 4.3. update
 
 
 _`updateTupel`: update this specific Tupel - identified by `id`_
 ~~~php
 /** @var boolean $bSuccess */
-$bSuccess = DB::$oTableUser->updateTupel(
+$bSuccess = DB::$oFooModelDBTableUser->updateTupel(
     DTFooModelDBTableUser::create()
         ->set_id(1)
         ->set_nickname('XYZ')
@@ -415,7 +389,7 @@ $bSuccess = DB::$oTableUser->updateTupel(
 _`update`: update all Tupel which are affected by the where clause_
 ~~~php
 /** @var boolean $bSuccess */
-$bSuccess = DB::$oTableUser->update(
+$bSuccess = DB::$oFooModelDBTableUser->update(
     DTFooModelDBTableUser::create()
         ->set_active('1'),
     // where
@@ -430,14 +404,14 @@ $bSuccess = DB::$oTableUser->update(
 ~~~
 
 
-<a id="4-5"></a>
+<a id="4-4"></a>
 
-#### 4.5. delete
+#### 4.4. delete
 
 _`deleteTupel`: delete this specific Tupel - identified by `id`_
 ~~~php
 /** @var boolean $bSuccess */
-$bSuccess = DB::$oTableUser->deleteTupel(
+$bSuccess = DB::$oFooModelDBTableUser->deleteTupel(
     DTFooModelDBTableUser::create()
         ->set_id(2)
 )
@@ -445,7 +419,7 @@ $bSuccess = DB::$oTableUser->deleteTupel(
 
 _`delete`: delete all Tupel which are affected by the where clause_
 ~~~php
-$bSuccess = DB::$oTableUser->delete(
+$bSuccess = DB::$oFooModelDBTableUser->delete(
     // where
     DTArrayObject::create()
         ->add_aKeyValue(
@@ -457,11 +431,139 @@ $bSuccess = DB::$oTableUser->delete(
 );
 ~~~
 
+<a id="4-5"></a>
+
+### 4.5. count
+
+~~~php
+// Amount of all Datasets
+$iAmount = DB::$oFooModelDBTableUser->count();
+
+// Amount of specific Datasets
+$iAmount = DB::$oFooModelDBTableUser->count(
+    DTArrayObject::create()
+        ->add_aKeyValue(
+            DTKeyValue::create()
+                ->set_sKey('stampChange')
+                ->set_mOptional1('=')
+                ->set_sValue('2021-06-19')
+    )
+);
+~~~
+
 <a id="4-6"></a>
 
-#### 4.6. SQL
+### 4.6. checksum
 
-_`SQL`_
+~~~php
+// Returns a checksum of the table
+$iChecksum = DB::$oFooModelDBTableUser->checksum();
+~~~
+
+<a id="4-7"></a>
+
+### 4.7. getFieldInfo
+
+returns array with table fields info
+
+~~~php
+$aFieldInfo = DB::$oFooModelDBTableUser->getFieldInfo();
+~~~
+
+_example return_
+
+~~~
+// type: array, items: 9
+[
+    'id_TableGroup' => [
+        'Field' => 'id_TableGroup',
+        'Type' => 'int(11)',
+        'Null' => 'YES',
+        'Key' => 'MUL',
+        'Default' => NULL,
+        'Extra' => '',
+        'php' => 'int',
+    ],
+    'email' => [
+        'Field' => 'email',
+        'Type' => 'varchar(255)',
+        'Null' => 'NO',
+        'Key' => '',
+        'Default' => NULL,
+        'Extra' => '',
+        'php' => 'string',
+    ],
+    'active' => [
+        'Field' => 'active',
+        'Type' => 'int(1)',
+        'Null' => 'NO',
+        'Key' => '',
+        'Default' => '0',
+        'Extra' => '',
+        'php' => 'int',
+    ],
+    'uuid' => [
+        'Field' => 'uuid',
+        'Type' => 'varchar(36)',
+        'Null' => 'NO',
+        'Key' => '',
+        'Default' => NULL,
+        'Extra' => '',
+        'php' => 'string',
+    ],
+    'uuidtmp' => [
+        'Field' => 'uuidtmp',
+        'Type' => 'varchar(36)',
+        'Null' => 'NO',
+        'Key' => '',
+        'Default' => NULL,
+        'Extra' => '',
+        'php' => 'string',
+    ],
+    'password' => [
+        'Field' => 'password',
+        'Type' => 'varchar(60)',
+        'Null' => 'NO',
+        'Key' => '',
+        'Default' => NULL,
+        'Extra' => '',
+        'php' => 'string',
+    ],
+    'nickname' => [
+        'Field' => 'nickname',
+        'Type' => 'varchar(10)',
+        'Null' => 'NO',
+        'Key' => '',
+        'Default' => NULL,
+        'Extra' => '',
+        'php' => 'string',
+    ],
+    'forename' => [
+        'Field' => 'forename',
+        'Type' => 'varchar(25)',
+        'Null' => 'NO',
+        'Key' => '',
+        'Default' => NULL,
+        'Extra' => '',
+        'php' => 'string',
+    ],
+    'lastname' => [
+        'Field' => 'lastname',
+        'Type' => 'varchar(25)',
+        'Null' => 'NO',
+        'Key' => '',
+        'Default' => NULL,
+        'Extra' => '',
+        'php' => 'string',
+    ],
+]
+~~~
+
+<a id="4-8"></a>
+
+#### 4.8. SQL
+
+_`SQL` example_
 ~~~php
 /**
  * @param DTLCPModelTableLCP $oDTLCPModelTableLCP
@@ -470,9 +572,12 @@ _`SQL`_
 public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
 {
     $sSql = "
-        SELECT CLICK.*, URL.urlOriginal, URL.urlMod
-        FROM `LCPModelTableClick` AS CLICK
-        RIGHT JOIN `LCPModelTableUrl` AS URL ON CLICK.id_LCPModelTableUrl = URL.id
+        SELECT 
+            CLICK.*, 
+            URL.urlOriginal, 
+            URL.urlMod
+        FROM        `LCPModelTableClick`    AS CLICK
+        RIGHT JOIN  `LCPModelTableUrl`      AS URL      ON CLICK.id_LCPModelTableUrl = URL.id
         WHERE 1
         AND URL.id_LCPModelTableLCP = " . (int) $oDTLCPModelTableLCP->get_id();
 

@@ -12,9 +12,14 @@ class DbInit
     use TraitDataType;
 
     /**
+     * @var null
+     */
+    protected static $_oInstance = null;
+
+    /**
      * Constructor
      */
-    public function __construct(array $aConfig = array())
+    protected function __construct(array $aConfig = array())
     {
         // try default fallback config; assuming it is called 'DB'
         if (true === empty($aConfig))
@@ -41,6 +46,12 @@ class DbInit
 
         foreach ($aClassVar as $sProperty => $mFoo)
         {
+            // skip
+            if ('_oInstance' === $sProperty)
+            {
+                continue;
+            }
+
             $sClass = $this->getDocCommentValueOfProperty($sProperty);
             $oReflectionClass = new \ReflectionClass(get_class($this));
             $oReflectionClass->setStaticPropertyValue(
