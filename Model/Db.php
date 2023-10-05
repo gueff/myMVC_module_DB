@@ -181,6 +181,7 @@ class Db
 
             if (true === self::$bCaching)
             {
+                Event::run('db.model.db.construct.saveCache', $this->sTableName);
                 Cache::saveCache(
                     $this->sCacheKeyTableName,
                     $this->sCacheValueTableName

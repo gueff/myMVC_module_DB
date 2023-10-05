@@ -594,6 +594,7 @@ public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
 ## 5. Events
 
 ~~~text
+db.model.db.construct.saveCache
 db.model.db.setSqlLoggingState.exception
 db.model.db.setForeignKey.exception
 db.model.db.checkIfTableExists.exception
