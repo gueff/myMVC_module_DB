@@ -902,7 +902,7 @@ class Db
 
         if (true === empty($aResult))
         {
-            return TableDataType::create();
+            return $oTableDataType::create();
         }
 
         return current($aResult);
