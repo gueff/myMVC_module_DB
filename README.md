@@ -563,27 +563,40 @@ _example return_
 
 #### 4.8. SQL
 
-_`SQL` example_
+_`SQL` example `fetchRow`_  
 ~~~php
-/**
- * @param DTLCPModelTableLCP $oDTLCPModelTableLCP
- * @return array
- */
-public function getUrlAndClick(DTLCPModelTableLCP $oDTLCPModelTableLCP)
+public function getUserByNickname(string $sNickname = '')
 {
-    $sSql = "
-        SELECT 
-            CLICK.*, 
-            URL.urlOriginal, 
-            URL.urlMod
-        FROM        `LCPModelTableClick`    AS CLICK
-        RIGHT JOIN  `LCPModelTableUrl`      AS URL      ON CLICK.id_LCPModelTableUrl = URL.id
-        WHERE 1
-        AND URL.id_LCPModelTableLCP = " . (int) $oDTLCPModelTableLCP->get_id();
+    $sSql = "SELECT * FROM `FooModelDBTableUser` WHERE nickname = '" . $sNickname . "'";
+    $aResult = DB::$oFooModelDBTableUser->fetchRow($sSql);
 
-    $aResult = $this->oDbPDO->fetchAll($sSql);
+    /** @var DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
+    $aDTFooModelDBTableUser = array();
 
-    return $aResult;
+    foreach ($aResult as $aData)
+    {
+        $aDTFooModelDBTableUser[] = DTFooModelDBTableUser::create($aData);
+    }
+        
+    return $aDTFooModelDBTableUser;
+}
+~~~
+_`SQL` example `fetchAll`_  
+~~~php
+public function getUserByNickname(string $sNickname = '')
+{
+    $sSql = "SELECT * FROM `FooModelDBTableUser` WHERE nickname = '" . $sNickname . "'";
+    $aResult = DB::$oFooModelDBTableUser->fetchAll($sSql);
+
+    /** @var DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
+    $aDTFooModelDBTableUser = array();
+
+    foreach ($aResult as $aData)
+    {
+        $aDTFooModelDBTableUser[] = DTFooModelDBTableUser::create($aData);
+    }
+        
+    return $aDTFooModelDBTableUser;
 }
 ~~~
 

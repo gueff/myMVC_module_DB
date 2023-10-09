@@ -1268,6 +1268,38 @@ class Db
     }
 
     /**
+     * @param string $sSql
+     * @return array
+     */
+    public function fetchRow(string $sSql = '')
+    {
+        if (true === empty($sSql))
+        {
+            return array();
+        }
+
+        $aResult = $this->oDbPDO->fetchRow($sSql);
+
+        return $aResult;
+    }
+
+    /**
+     * @param string $sSql
+     * @return array
+     */
+    public function fetchAll(string $sSql = '')
+    {
+        if (true === empty($sSql))
+        {
+            return array();
+        }
+
+        $aResult = $this->oDbPDO->fetchAll($sSql);
+
+        return $aResult;
+    }
+
+    /**
      * @param DTArrayObject|null $oDTArrayObject
      * @return bool
      * @throws \ReflectionException
