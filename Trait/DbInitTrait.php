@@ -7,7 +7,7 @@ trait DbInitTrait
     /**
      * for use in your concrete DBInit class
      * @param array $aConfig
-     * @return \Cdm\Model\DB|\DB\Trait\DbInitTrait|null
+     * @return \DB\Trait\DbInitTrait|null
      */
     public static function init(array $aConfig = array())
     {
