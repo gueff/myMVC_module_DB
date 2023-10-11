@@ -7,6 +7,7 @@
   - [3.1. Create DB Config](#3-1)
   - [3.2. Creating a concrete Table Class](#3-2)
   - [3.3. Creating a DBInit class that is used for each DB access](#3-3)
+  - [3.4. Let generate an openapi yaml schema file for data type classes](#3-4)
 - [4. Usage](#4)
   - [4.1. create](#4-1)
   - [4.2. retrieve](#4-2)
@@ -241,6 +242,37 @@ class DB extends DbInit
      */
     public static $oFooModelDBTableUser;
 }
+~~~
+
+---
+
+<a id="3-4"></a>
+
+### 3.4. Let generate an openapi yaml schema file for data type classes
+
+create a file `db.php` (you can name it as you like) in the event folder of your myMVC module and declare the bindings as follows.
+
+_file `/modules/{MODULE}/etc/event/db.php`_  
+~~~php
+\MVC\Event::processBindConfigStack([
+
+    // let create an openapi yaml file 
+    // according to DB Table DataType Classes
+    // when the DataBase Tables setup changes
+    'db.model.db.construct.saveCache' => array(
+        function(string $sTableName = '') {
+
+            // one-timer
+            if (false === \MVC\Registry::isRegistered('DB::openapi'))
+            {
+                \MVC\Registry::set('DB::openapi', true);
+
+                // generate DT.yaml
+                $sYamlFile = \Cdm\Model\Tool::openapi(DB::init());
+            }
+        }
+    ),
+]);
 ~~~
 
 ---
