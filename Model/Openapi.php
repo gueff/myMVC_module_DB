@@ -33,7 +33,7 @@ class Openapi
 
         foreach ($aClassVar as $sProperty => $mFoo)
         {
-            $aFieldInfo = DB::$$sProperty->getFieldInfo();
+            $aFieldInfo = $oDB::$$sProperty->getFieldInfo();
             $sClass = $oDB->getDocCommentValueOfProperty($sProperty);
             $sDtClassName = $sDtClassPrefix . str_replace('\\', '', $sClass);
             $sDTofClass = $sDTFolderPre . '\\' . $sDtClassName;
