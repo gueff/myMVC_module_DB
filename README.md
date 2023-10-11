@@ -268,7 +268,7 @@ _file `/modules/{MODULE}/etc/event/db.php`_
                 \MVC\Registry::set('DB::openapi', true);
 
                 // generate DT.yaml
-                $sYamlFile = \Cdm\Model\Tool::openapi(DB::init());
+                $sYamlFile =\DB\Model\Openapi::createDTYamlOnDTClasses(DB::init());
             }
         }
     ),
