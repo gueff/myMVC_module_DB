@@ -256,8 +256,6 @@ _file `/modules/{MODULE}/etc/event/db.php`_
 ~~~php
 <?php
 
-use Foo\Model\DB;
-
 \MVC\Event::processBindConfigStack([
 
     // let create an openapi yaml file
@@ -274,7 +272,7 @@ use Foo\Model\DB;
                 // generate DT.yaml
                 $sYamlFile =\DB\Model\Openapi::createDTYamlOnDTClasses(
                     // pass instance of your concrete DB Class
-                    DB::init()
+                    \Foo\Model\DB::init()
                 );
             }
         }
