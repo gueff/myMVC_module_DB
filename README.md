@@ -254,9 +254,13 @@ create a file `db.php` (you can name it as you like) in the event folder of your
 
 _file `/modules/{MODULE}/etc/event/db.php`_  
 ~~~php
+<?php
+
+use Foo\Model\DB;
+
 \MVC\Event::processBindConfigStack([
 
-    // let create an openapi yaml file 
+    // let create an openapi yaml file
     // according to DB Table DataType Classes
     // when the DataBase Tables setup changes
     'db.model.db.construct.saveCache' => array(
@@ -268,7 +272,10 @@ _file `/modules/{MODULE}/etc/event/db.php`_
                 \MVC\Registry::set('DB::openapi', true);
 
                 // generate DT.yaml
-                $sYamlFile =\DB\Model\Openapi::createDTYamlOnDTClasses(DB::init());
+                $sYamlFile =\DB\Model\Openapi::createDTYamlOnDTClasses(
+                    // pass instance of your concrete DB Class
+                    DB::init()
+                );
             }
         }
     ),
