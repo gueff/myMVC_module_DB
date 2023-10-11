@@ -2,7 +2,7 @@
 
 namespace DB\Model;
 
-
+use MVC\Config;
 use Symfony\Component\Yaml\Yaml;
 
 class Openapi
@@ -25,8 +25,8 @@ class Openapi
         (true === empty($sDtClassPrefix)) ? $sDtClassPrefix = 'DT' : false;
         (true === empty($sOpenApiVersion)) ? $sOpenApiVersion = '3.0.1' : false;
 
-        $sDTFolderPre = '\\' . Config::get_MVC_MODULE_CURRENT_NAME() . '\\' . basename(\MVC\Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR());
-        $sYamlFile = \MVC\Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR() . '/DTTables.yaml';
+        $sDTFolderPre = '\\' . Config::get_MVC_MODULE_CURRENT_NAME() . '\\' . basename(Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR());
+        $sYamlFile = Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR() . '/DTTables.yaml';
         $aClassVar = get_class_vars(get_class($oDB));
         $aTmp = array();
         $aTmp['components']['schemas'];
