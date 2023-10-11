@@ -263,13 +263,13 @@ _file `/modules/{MODULE}/etc/event/db.php`_
     // when the DataBase Tables setup changes
     'db.model.db.construct.saveCache' => array(
         function(string $sTableName = '') {
-
+        
             // one-timer
             if (false === \MVC\Registry::isRegistered('DB::openapi'))
             {
                 \MVC\Registry::set('DB::openapi', true);
 
-                // generate DT.yaml
+                // generate /modules/{MODULE}/DataType/DTTables.yaml
                 $sYamlFile =\DB\Model\Openapi::createDTYamlOnDTClasses(
                     // pass instance of your concrete DB Class
                     \Foo\Model\DB::init()
