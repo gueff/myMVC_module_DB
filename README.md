@@ -85,7 +85,7 @@ $aConfig['MODULE']['DB'] = array(
         // 1) make sure write access is given to the folder
         // as long as the db user is going to write and not the webserver user
         // 2) consider a logrotate mechanism for this logfile as it may grow quickly
-        'general_log_file' => '/tmp/db.log'
+        'general_log_file' => '/tmp/' . getenv('db.dbname') . '.log',
     )
 );
 ~~~
