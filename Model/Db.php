@@ -681,18 +681,65 @@ class Db
         // add PHP Type equivalents
         foreach ($aResult as $sKey => $mValue)
         {
-            $sType = (true === is_array($mValue)) ? get($mValue['Type'], 'int(11)') : '';
+            $sType = (true === is_array($mValue)) ? get($mValue['Type'], 'varchar') : '';
+            $sDefString = $sType;
             $sType = strtolower($sType);
             $sType = trim($sType);
+            $sType = trim(strtok($sType, '('));
+            $sType = trim(strtok($sType, ' '));
             $sType = preg_replace('/[^a-zA-Z]+/', '', $sType);
 
             if (isset(self::$aSqlType[$sType]))
             {
-                $aResult[$sKey]['php'] = self::$aSqlType[$sType];
+                $aResult[$sKey]['php'] = self::$aSqlType[$sType]; /** @deprecated  */
+                $aResult[$sKey]['_php'] = self::$aSqlType[$sType];
+                $aResult[$sKey]['_type'] = $sType;
+
+                $mValueType = '';
+
+                if (in_array($sType, array('char','varchar','int','tinyint','smallint','mediumint','bigint')))
+                {
+                    $mValueType = self::getIntegerFromType(get($sDefString, ''), $sType);
+                }
+                elseif ('enum' === $sType)
+                {
+                    $mValueType = self::getArrayFromEnum(get($sDefString, ''));
+                }
+
+                $aResult[$sKey]['_typeValue'] = $mValueType;
             }
         }
 
         return $aResult;
+    }
+
+    protected static function getIntegerFromType(string $sValue = '', $sType = 'char')
+    {
+        $sPattern = '/' . $sType . '(\:|\.|\s)*\(([0-9]*)\)/i';
+        preg_match_all($sPattern, $sValue, $aMatch);
+        $mValue = current($aMatch[2]);
+
+        return $mValue;
+    }
+
+    protected static function getArrayFromEnum(string $sValue = '')
+    {
+        $sValue = trim($sValue);
+        $sPattern = '/enum(\:|\.|\s)*\([\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}\p{C}]*\)/i';
+        preg_match($sPattern, $sValue, $aMatch);
+        $sMatch = current($aMatch);
+        $sMatch = trim(str_replace('enum', '', $sMatch));
+        $sMatch = substr($sMatch, 1, -1);
+        $aValue = array_filter(explode(',', $sMatch));
+        $aValue = array_map('trim', $aValue);
+        $aValue = array_map(
+            function ($mValue) {
+                return substr($mValue, 1, -1);
+            },
+            $aValue
+        );
+
+        return $aValue;
     }
 
     /**

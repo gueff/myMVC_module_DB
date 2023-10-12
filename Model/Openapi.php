@@ -3,6 +3,7 @@
 namespace DB\Model;
 
 use MVC\Config;
+use MVC\Debug;
 use Symfony\Component\Yaml\Yaml;
 
 class Openapi
@@ -48,8 +49,22 @@ class Openapi
             foreach ($oDtTmp->getPropertyArray() as $sKey => $mValue)
             {
                 $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['type'] = gettype($mValue);
-                $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['default'] = $mValue;
-                $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['description'] = $aFieldInfo[$sKey]['Type'];
+
+                if ('enum' === $aFieldInfo[$sKey]['_type'])
+                {
+                    $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['enum'] = $aFieldInfo[$sKey]['_typeValue'];
+                }
+                else
+                {
+                    (is_numeric($aFieldInfo[$sKey]['_typeValue'])) ? $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['format'] = $aFieldInfo[$sKey]['_type'] : false;
+                    ('date' === $aFieldInfo[$sKey]['_type']) ? $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['format'] = 'date' : false;
+                    ('datetime' === $aFieldInfo[$sKey]['_type']) ? $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['format'] = 'date-time' : false;
+                    (is_numeric($aFieldInfo[$sKey]['_typeValue']) && 'string' === $aFieldInfo[$sKey]['_php']) ? $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['maxLength'] = (int) $aFieldInfo[$sKey]['_typeValue'] : false;
+
+                    $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['default'] = $mValue;
+                }
+
+                (null !== $aFieldInfo[$sKey]['Type']) ? $aTmp['components']['schemas'][$sDtClassName]['properties'][$sKey]['description'] = $aFieldInfo[$sKey]['Type'] : false;
             }
         }
 
