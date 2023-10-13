@@ -713,6 +713,11 @@ class Db
         return $aResult;
     }
 
+    /**
+     * @param string $sValue
+     * @param        $sType
+     * @return false|mixed
+     */
     protected static function getIntegerFromType(string $sValue = '', $sType = 'char')
     {
         $sPattern = '/' . $sType . '(\:|\.|\s)*\(([0-9]*)\)/i';
@@ -722,6 +727,10 @@ class Db
         return $mValue;
     }
 
+    /**
+     * @param string $sValue
+     * @return array|string[]
+     */
     protected static function getArrayFromEnum(string $sValue = '')
     {
         $sValue = trim($sValue);

@@ -2,8 +2,8 @@
 
 namespace DB\Model;
 
+use MVC\Cache;
 use MVC\Config;
-use MVC\Debug;
 use Symfony\Component\Yaml\Yaml;
 
 class Openapi
@@ -22,6 +22,8 @@ class Openapi
         {
             return '';
         }
+
+        Cache::flushCache();
 
         (true === empty($sDtClassPrefix)) ? $sDtClassPrefix = 'DT' : false;
         (true === empty($sOpenApiVersion)) ? $sOpenApiVersion = '3.0.1' : false;
