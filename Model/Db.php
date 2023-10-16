@@ -933,7 +933,7 @@ class Db
     /**
      * @param \DB\DataType\DB\TableDataType|null $oTableDataType
      * @param bool                               $bStrict
-     * @return array
+     * @return \DB\DataType\DB\TableDataType
      * @throws \ReflectionException
      */
     public function retrieveTupel(TableDataType $oTableDataType = null, bool $bStrict = false)
