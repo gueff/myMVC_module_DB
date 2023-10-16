@@ -421,9 +421,7 @@ $oDTFooModelTableUser = DB::$oFooModelTableUser->retrieveTupel(
 )
 
 // modify Tupel
-$oDTFooModelTableUser
-    ->set_id(1)
-    ->set_nickname('XYZ');
+$oDTFooModelTableUser->set_nickname('XYZ');
 
 // update Tupel
 /** @var boolean $bSuccess */
