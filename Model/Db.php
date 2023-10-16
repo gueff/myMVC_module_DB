@@ -18,6 +18,7 @@ namespace DB\Model;
 use DB\DataType\DB\ArrayObject;
 use DB\DataType\DB\Constraint;
 use DB\DataType\DB\Foreign;
+use DB\DataType\DB\Table;
 use DB\DataType\DB\TableDataType;
 use MVC\Cache;
 use MVC\DataType\DTArrayObject;
@@ -931,9 +932,9 @@ class Db
     }
 
     /**
-     * @param \DB\DataType\DB\TableDataType|null $oTableDataType
-     * @param bool                               $bStrict
-     * @return \DB\DataType\DB\TableDataType
+     * @param TableDataType|null $oTableDataType
+     * @param bool $bStrict
+     * @return TableDataType|false
      * @throws \ReflectionException
      */
     public function retrieveTupel(TableDataType $oTableDataType = null, bool $bStrict = false)
@@ -1193,10 +1194,6 @@ class Db
         $sSql = "UPDATE `" . $this->sTableName . "` SET \n";
         $sSqlExplain =  $sSql;
 
-        Debug::display(
-            $oDTArrayObjectSet->get_aKeyValue()
-        );
-
         /**
          * Set
          * @var integer $iKey
@@ -1269,29 +1266,22 @@ class Db
     }
 
     /**
-     * updates a single, concrete dataset (a tupel)
+     * updates a single, concrete dataset (a tupel) identified by id
      * @param \DB\DataType\DB\TableDataType $oTableDataType
-     * @param bool                          $bStrict
      * @return bool
      * @throws \ReflectionException
      */
-    public function updateTupel(TableDataType $oTableDataType, bool $bStrict = false)
+    public function updateTupel(TableDataType $oTableDataType)
     {
-        $oDTArrayObject = DTArrayObject::create();
+        $oDTArrayObject = DTArrayObject::create()->add_aKeyValue(
+            DTKeyValue::create()->set_sKey(TableDataType::getPropertyName_id())->set_mOptional1('=')->set_sValue($oTableDataType->get_id())
+        );
 
-        foreach ($oTableDataType->getPropertyArray() as $sProperty => $sValue)
-        {
-            if (false === $bStrict && true === empty($sValue))
-            {
-                continue;
-            }
-
-            $oDTArrayObject->add_aKeyValue(
-                DTKeyValue::create()->set_sKey($sProperty)->set_mOptional1('=')->set_sValue($sValue)
-            );
-        }
-
-        $bUpdate = $this->update($oTableDataType, $oDTArrayObject);
+        $bUpdate = $this->update(
+            $oTableDataType,   // datatype object
+            $oDTArrayObject,   // where object
+            true        // allow empty ones too
+        );
 
         return $bUpdate;
     }
