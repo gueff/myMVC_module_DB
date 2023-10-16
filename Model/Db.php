@@ -1305,6 +1305,8 @@ class Db
             );
         }
 
+        (true === empty($oDTArrayObject->get_aKeyValue())) ? $oDTArrayObject = null : false;
+
         $bDelete = $this->delete($oDTArrayObject);
 
         return $bDelete;
