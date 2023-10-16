@@ -18,12 +18,10 @@ namespace DB\Model;
 use DB\DataType\DB\ArrayObject;
 use DB\DataType\DB\Constraint;
 use DB\DataType\DB\Foreign;
-use DB\DataType\DB\Table;
 use DB\DataType\DB\TableDataType;
 use MVC\Cache;
 use MVC\DataType\DTArrayObject;
 use MVC\DataType\DTKeyValue;
-use MVC\Debug;
 use MVC\Error;
 use MVC\Event;
 use MVC\Generator\DataType;
@@ -932,9 +930,9 @@ class Db
     }
 
     /**
-     * @param TableDataType|null $oTableDataType
-     * @param bool $bStrict
-     * @return TableDataType|false
+     * @param \DB\DataType\DB\TableDataType|null $oTableDataType
+     * @param bool                               $bStrict
+     * @return \DB\DataType\DB\TableDataType|false
      * @throws \ReflectionException
      */
     public function retrieveTupel(TableDataType $oTableDataType = null, bool $bStrict = false)
@@ -1160,7 +1158,6 @@ class Db
         /** integer */
         return $iAmount;
     }
-
 
     /**
      * UPDATE table SET x = y WHERE id
