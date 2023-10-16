@@ -101,16 +101,16 @@ _PHP Class_
 as a Representation of the DB Table
 
 
-_file: `modules/Foo/Model/DB/TableUser.php`_
+_file: `modules/Foo/Model/Table/User.php`_
 ~~~php
 <?php
 
-namespace Foo\Model\DB;
+namespace Foo\Model\Table;
 
 use DB\Model\Db;
 
 
-class TableUser extends Db
+class User extends Db
 {
     /**
      * @var array
@@ -141,27 +141,27 @@ class TableUser extends Db
 }
 ~~~
 
-- creates the Table `TableUser`
+- creates the Table `FooModelTableUser`
   - Table has several fields from `email` ... `lastname` as declared in property `$aField`
     - 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically
     - do not add these fields by manually
-- generates a DataType Class `DataType/DTFooModelDBTableUser.php`
+- generates a DataType Class `DataType/DTFooModelTableUser.php`
 
 ---
 
 **Creating a Table and adding a Foreign Key**
 
 
-_file: `modules/Foo/Model/DB/TableUser.php`_
+_file: `modules/Foo/Model/Table/User.php`_
 ~~~php
 <?php
 
-namespace Foo\Model\DB;
+namespace Foo\Model\Table;
 
 use DB\Model\Db;
 use DB\DataType\DB\Foreign;
 
-class TableUser extends Db
+class User extends Db
 {
     /**
      * @var array
@@ -190,19 +190,19 @@ class TableUser extends Db
         );
         $this->setForeignKey(
             Foreign::create()
-                ->set_sForeignKey('id_TableGroup')
-                ->set_sReferenceTable('FooModelDBTableGroup')
+                ->set_sForeignKey('id_FooModelTableGroup')
+                ->set_sReferenceTable('FooModelTableGroup')
         );
     }
 }
 ~~~
 
-- creates the Table `TableUser`
+- creates the Table `FooModelTableUser`
   - Table has several fields from `email` ... `lastname` as declared in property `$aField`
     - 🛈 The Table fields `id`, `stampChange` and `stampCreate` are added automatically
     - do not add these fields by manually
-- The foreign key `id_TableGroup` -pointing to table `FooModelDBTableGroup`- is added by method `setForeignKey()`
-- generates a DataType Class `DataType/DTFooModelDBTableUser.php`
+- The foreign key `id_FooModelTableGroup` -pointing to table `FooModelTableGroup`- is added by method `setForeignKey()`
+- generates a DataType Class `DataType/DTFooModelTableUser.php`
 
 ---
 
@@ -220,8 +220,8 @@ _file: `modules/Foo/Model/DB.php`_
  * - add a doctype to each static property
  * - these doctypes must contain the vartype information about the certain class
  * @example
- *      @var Foo\Model\DB\TableUser
- *      public static $oFooModelDBTableUser;
+ *      @var Foo\Model\Table\User
+ *      public static $oFooModelTableUser;
  * ---
  * [!]  it is important to declare the vartype expanded with a full path
  *      avoid to make use of `use ...` support
@@ -236,11 +236,11 @@ use DB\Trait\DbInitTrait;
 class DB extends DbInit
 {
     use DbInitTrait;
-    
+
     /**
-     * @var \Foo\Model\DB\TableUser
+     * @var \Foo\Model\Table\User
      */
-    public static $oFooModelDBTableUser;
+    public static $oFooModelTableUser;
 }
 ~~~
 
@@ -252,7 +252,7 @@ class DB extends DbInit
 
 create a file `db.php` (you can name it as you like) in the event folder of your myMVC module and declare the bindings as follows.
 
-_file `/modules/{MODULE}/etc/event/db.php`_  
+_file `/modules/{MODULE}/etc/event/db.php`_
 ~~~php
 <?php
 
@@ -263,7 +263,7 @@ _file `/modules/{MODULE}/etc/event/db.php`_
     // when the DataBase Tables setup changes
     'db.model.db.construct.saveCache' => array(
         function(string $sTableName = '') {
-        
+
             // one-timer
             if (false === \MVC\Registry::isRegistered('DB::openapi'))
             {
@@ -306,7 +306,7 @@ after that you can access your TableClass from everywhere - even from frontend t
 
 _Usage_
 ~~~php
-DB::$oFooModelDBTableUser->...<method>...
+DB::$oFooModelTableUser->...<method>...
 ~~~
 
 <a id="4-1"></a>
@@ -315,12 +315,12 @@ DB::$oFooModelDBTableUser->...<method>...
 
 _`create` (INSERT)_
 therefore an object of its related Datatype must be instaciated and given to the method `create`.
-Here e.g. with Datatype "DTFooModelDBTableUser" to TableClass "modules/Foo/Model/DB/TableUser":
+Here e.g. with Datatype "DTFooModelTableUser" to TableClass "modules/Foo/Model/DB/TableUser":
 
 ~~~php
-DB::$oFooModelDBTableUser->create(
-    DTFooModelDBTableUser::create()
-        ->set_id_TableGroup(1)
+DB::$oFooModelTableUser->create(
+    DTFooModelTableUser::create()
+        ->set_id_FooModelTableGroup(1)
         ->set_uuid(Strings::uuid4())
         ->set_email('foo@example.com')
         ->set_forename('foo')
@@ -343,9 +343,9 @@ DB::$oFooModelDBTableUser->create(
 
 _`retrieveTupel` - identified by `id`_
 ~~~php
-/** @var \Foo\DataType\DTFooModelDBTableUser $oDTFooModelDBTableUser */
-$oDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieveTupel(
-    DTFooModelDBTableUser::create()
+/** @var \Foo\DataType\DTFooModelTableUser $oDTFooModelTableUser */
+$oDTFooModelTableUser = DB::$oFooModelTableUser->retrieveTupel(
+    DTFooModelTableUser::create()
         ->set_id(2)
 )
 ~~~
@@ -356,14 +356,14 @@ $oDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieveTupel(
 
 _`retrieve`: get all Datasets_
 ~~~php
-/** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-$aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieveTupel();
+/** @var \Foo\DataType\DTFooModelTableUser[] $aDTFooModelTableUser */
+$aDTFooModelTableUser = DB::$oFooModelTableUser->retrieveTupel();
 ~~~
 
 _`retrieve`: get specific Datasets_
 ~~~php
-/** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-$aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
+/** @var \Foo\DataType\DTFooModelTableUser[] $aDTFooModelTableUser */
+$aDTFooModelTableUser = DB::$oFooModelTableUser->retrieve(
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
@@ -376,8 +376,8 @@ $aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
 
 _`retrieve`: get Datasets with sort order_
 ~~~php
-/** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-$aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
+/** @var \Foo\DataType\DTFooModelTableUser[] $aDTFooModelTableUser */
+$aDTFooModelTableUser = DB::$oFooModelTableUser->retrieve(
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
@@ -395,8 +395,8 @@ $aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
 
 _`retrieve`: get first 30 Datasets (LIMIT 0,30)_
 ~~~php
-/** @var \Foo\DataType\DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-$aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
+/** @var \Foo\DataType\DTFooModelTableUser[] $aDTFooModelTableUser */
+$aDTFooModelTableUser = DB::$oFooModelTableUser->retrieve(
     null,
     DTArrayObject::create()
         ->add_aKeyValue(
@@ -415,8 +415,8 @@ $aDTFooModelDBTableUser = DB::$oFooModelDBTableUser->retrieve(
 _`updateTupel`: update this specific Tupel - identified by `id`_
 ~~~php
 /** @var boolean $bSuccess */
-$bSuccess = DB::$oFooModelDBTableUser->updateTupel(
-    DTFooModelDBTableUser::create()
+$bSuccess = DB::$oFooModelTableUser->updateTupel(
+    DTFooModelTableUser::create()
         ->set_id(1)
         ->set_nickname('XYZ')
 );
@@ -426,8 +426,8 @@ $bSuccess = DB::$oFooModelDBTableUser->updateTupel(
 _`update`: update all Tupel which are affected by the where clause_
 ~~~php
 /** @var boolean $bSuccess */
-$bSuccess = DB::$oFooModelDBTableUser->update(
-    DTFooModelDBTableUser::create()
+$bSuccess = DB::$oFooModelTableUser->update(
+    DTFooModelTableUser::create()
         ->set_active('1'),
     // where
     DTArrayObject::create()
@@ -448,15 +448,15 @@ $bSuccess = DB::$oFooModelDBTableUser->update(
 _`deleteTupel`: delete this specific Tupel - identified by `id`_
 ~~~php
 /** @var boolean $bSuccess */
-$bSuccess = DB::$oFooModelDBTableUser->deleteTupel(
-    DTFooModelDBTableUser::create()
+$bSuccess = DB::$oFooModelTableUser->deleteTupel(
+    DTFooModelTableUser::create()
         ->set_id(2)
 )
 ~~~
 
 _`delete`: delete all Tupel which are affected by the where clause_
 ~~~php
-$bSuccess = DB::$oFooModelDBTableUser->delete(
+$bSuccess = DB::$oFooModelTableUser->delete(
     // where
     DTArrayObject::create()
         ->add_aKeyValue(
@@ -474,10 +474,10 @@ $bSuccess = DB::$oFooModelDBTableUser->delete(
 
 ~~~php
 // Amount of all Datasets
-$iAmount = DB::$oFooModelDBTableUser->count();
+$iAmount = DB::$oFooModelTableUser->count();
 
 // Amount of specific Datasets
-$iAmount = DB::$oFooModelDBTableUser->count(
+$iAmount = DB::$oFooModelTableUser->count(
     DTArrayObject::create()
         ->add_aKeyValue(
             DTKeyValue::create()
@@ -494,7 +494,7 @@ $iAmount = DB::$oFooModelDBTableUser->count(
 
 ~~~php
 // Returns a checksum of the table
-$iChecksum = DB::$oFooModelDBTableUser->checksum();
+$iChecksum = DB::$oFooModelTableUser->checksum();
 ~~~
 
 <a id="4-7"></a>
@@ -504,7 +504,7 @@ $iChecksum = DB::$oFooModelDBTableUser->checksum();
 returns array with table fields info
 
 ~~~php
-$aFieldInfo = DB::$oFooModelDBTableUser->getFieldInfo();
+$aFieldInfo = DB::$oFooModelTableUser->getFieldInfo();
 ~~~
 
 _example return_
@@ -512,8 +512,8 @@ _example return_
 ~~~
 // type: array, items: 9
 [
-    'id_TableGroup' => [
-        'Field' => 'id_TableGroup',
+    'id_FooModelTableGroup' => [
+        'Field' => 'id_FooModelTableGroup',
         'Type' => 'int(11)',
         'Null' => 'YES',
         'Key' => 'MUL',
@@ -600,40 +600,40 @@ _example return_
 
 #### 4.8. SQL
 
-_`SQL` example `fetchRow`_  
+_`SQL` example `fetchRow`_
 ~~~php
 public function getUserByNickname(string $sNickname = '')
 {
-    $sSql = "SELECT * FROM `FooModelDBTableUser` WHERE nickname = '" . $sNickname . "'";
-    $aResult = DB::$oFooModelDBTableUser->fetchRow($sSql);
+    $sSql = "SELECT * FROM `FooModelTableUser` WHERE nickname = '" . $sNickname . "'";
+    $aResult = DB::$oFooModelTableUser->fetchRow($sSql);
 
-    /** @var DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-    $aDTFooModelDBTableUser = array();
+    /** @var DTFooModelTableUser[] $aDTFooModelTableUser */
+    $aDTFooModelTableUser = array();
 
     foreach ($aResult as $aData)
     {
-        $aDTFooModelDBTableUser[] = DTFooModelDBTableUser::create($aData);
+        $aDTFooModelTableUser[] = DTFooModelTableUser::create($aData);
     }
-        
-    return $aDTFooModelDBTableUser;
+
+    return $aDTFooModelTableUser;
 }
 ~~~
-_`SQL` example `fetchAll`_  
+_`SQL` example `fetchAll`_
 ~~~php
 public function getUserByNickname(string $sNickname = '')
 {
-    $sSql = "SELECT * FROM `FooModelDBTableUser` WHERE nickname = '" . $sNickname . "'";
-    $aResult = DB::$oFooModelDBTableUser->fetchAll($sSql);
+    $sSql = "SELECT * FROM `FooModelTableUser` WHERE nickname = '" . $sNickname . "'";
+    $aResult = DB::$oFooModelTableUser->fetchAll($sSql);
 
-    /** @var DTFooModelDBTableUser[] $aDTFooModelDBTableUser */
-    $aDTFooModelDBTableUser = array();
+    /** @var DTFooModelTableUser[] $aDTFooModelTableUser */
+    $aDTFooModelTableUser = array();
 
     foreach ($aResult as $aData)
     {
-        $aDTFooModelDBTableUser[] = DTFooModelDBTableUser::create($aData);
+        $aDTFooModelTableUser[] = DTFooModelTableUser::create($aData);
     }
-        
-    return $aDTFooModelDBTableUser;
+
+    return $aDTFooModelTableUser;
 }
 ~~~
 
