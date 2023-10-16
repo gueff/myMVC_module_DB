@@ -412,13 +412,23 @@ $aDTFooModelTableUser = DB::$oFooModelTableUser->retrieve(
 #### 4.3. update
 
 
-_`updateTupel`: update this specific Tupel - identified by `id`_
+_`updateTupel`: update a specific Tupel - identified by `id`_
 ~~~php
+// get Tupel
+/** @var \Foo\DataType\DTFooModelTableUser $oDTFooModelTableUser */
+$oDTFooModelTableUser = DB::$oFooModelTableUser->retrieveTupel(
+    DTFooModelTableUser::create()->set_id(2)
+)
+
+// modify Tupel
+$oDTFooModelTableUser
+    ->set_id(1)
+    ->set_nickname('XYZ');
+
+// update Tupel
 /** @var boolean $bSuccess */
 $bSuccess = DB::$oFooModelTableUser->updateTupel(
-    DTFooModelTableUser::create()
-        ->set_id(1)
-        ->set_nickname('XYZ')
+    $oDTFooModelTableUser
 );
 ~~~
 - the equivalent dataset tupel with object's `id` will be updated.
