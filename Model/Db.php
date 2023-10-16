@@ -967,7 +967,7 @@ class Db
     /**
      * @param DTArrayObject|null $oDTArrayObject
      * @param DTArrayObject|null $oDTArrayObjectOption
-     * @return array
+     * @return \DB\DataType\DB\TableDataType[]
      * @throws \ReflectionException
      */
     public function retrieve(DTArrayObject $oDTArrayObject = null, DTArrayObject $oDTArrayObjectOption = null)
