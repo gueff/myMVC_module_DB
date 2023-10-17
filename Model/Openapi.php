@@ -11,12 +11,13 @@ class Openapi
     /**
      * builds an openapi.yaml "DTTables.yaml" in the DataType folder based on data type classes of the DB tables
      * @param \DB\Model\DbInit|null $oDB
-     * @param                       $sDtClassPrefix
-     * @param                       $sOpenApiVersion
+     * @param string                $sDtClassPrefix
+     * @param string                $sOpenApiVersion
+     * @param string                $sYamlFileName
      * @return string /absolute/path/to/file.yaml | empty=fail
      * @throws \ReflectionException
      */
-    public static function createDTYamlOnDTClasses(\DB\Model\DbInit $oDB = null, $sDtClassPrefix = 'DT', $sOpenApiVersion = '3.0.1')
+    public static function createDTYamlOnDTClasses(\DB\Model\DbInit $oDB = null, string $sDtClassPrefix = 'DT', string $sOpenApiVersion = '3.0.1', string $sYamlFileName = 'DTTables.yaml')
     {
         if (null === $oDB)
         {
@@ -29,7 +30,7 @@ class Openapi
         (true === empty($sOpenApiVersion)) ? $sOpenApiVersion = '3.0.1' : false;
 
         $sDTFolderPre = '\\' . Config::get_MVC_MODULE_CURRENT_NAME() . '\\' . basename(Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR());
-        $sYamlFile = Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR() . '/DTTables.yaml';
+        $sYamlFile = Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR() . '/' . basename($sYamlFileName);
         $aClassVar = get_class_vars(get_class($oDB));
         $aTmp = array();
         $aTmp['components']['schemas'];
