@@ -608,7 +608,19 @@ _example return_
 
 #### 4.8. SQL
 
-_`SQL` example `fetchRow`_
+_`SQL` examples using `$oPDO`_
+~~~php
+public function getUserObject()
+{
+    $aResult = (array) DB::$oPDO
+        ->query("SELECT * FROM `FooModelTableUser` WHERE `id` = '1'")
+        ->fetch(\PDO::FETCH_ASSOC);
+
+    return DTFooModelTableUser::create($aResult);
+}
+~~~
+
+_`SQL` example `fetchRow` on table class_
 ~~~php
 public function getUserByNickname(string $sNickname = '')
 {
