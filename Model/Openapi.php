@@ -36,6 +36,13 @@ class Openapi
 
         foreach ($aClassVar as $sProperty => $mFoo)
         {
+            $bMethodExists = method_exists($oDB::$$sProperty, 'getFieldInfo');
+
+            if (false === $bMethodExists)
+            {
+                continue;
+            }
+
             $aFieldInfo = $oDB::$$sProperty->getFieldInfo();
             $sClass = $oDB->getDocCommentValueOfProperty($sProperty);
             $sDtClassName = $sDtClassPrefix . str_replace('\\', '', $sClass);
