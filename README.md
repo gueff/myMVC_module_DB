@@ -628,7 +628,7 @@ public function getUserObject()
 ~~~
 ~~~
 // type: object
-\Cdm\DataType\DTFooModelTableUser::__set_state(array(
+\Foo\DataType\DTFooModelTableUser::__set_state(array(
       'id' => 1,
       'stampChange' => '2023-09-28 10:18:03',
       'stampCreate' => '2023-09-28 10:16:14',
@@ -669,7 +669,7 @@ public function getUserObjectsArray()
 // type: array, items: 2
 [
     0 => [
-    \Cdm\DataType\DTFooModelTableUser::__set_state(array(
+    \Foo\DataType\DTFooModelTableUser::__set_state(array(
           'id' => 1,
           'stampChange' => '2023-09-28 10:18:03',
           'stampCreate' => '2023-09-28 10:16:14',
@@ -684,7 +684,7 @@ public function getUserObjectsArray()
           'lastname' => 'bar',
     )],
     1 => [
-    \Cdm\DataType\DTFooModelTableUser::__set_state(array(
+    \Foo\DataType\DTFooModelTableUser::__set_state(array(
           'id' => 2,
           'stampChange' => '2023-09-28 10:18:03',
           'stampCreate' => '2023-09-28 10:16:14',
