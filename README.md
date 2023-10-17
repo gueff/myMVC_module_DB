@@ -608,53 +608,97 @@ _example return_
 
 #### 4.8. SQL
 
-_`SQL` examples using `$oPDO`_
+_`SQL` examples using `$oPDO` query .. fetch_
 ~~~php
+/**
+ * @return \Foo\DataType\DTFooModelTableUser
+ * @throws \ReflectionException
+ */
 public function getUserObject()
 {
-    $aResult = (array) DB::$oPDO
-        ->query("SELECT * FROM `FooModelTableUser` WHERE `id` = '1'")
-        ->fetch(\PDO::FETCH_ASSOC);
-
-    return DTFooModelTableUser::create($aResult);
+    // get result & cast to datatype object
+    $oDTFooModelTableUser = DTFooModelTableUser::create(
+        (array) DB::$oPDO
+            ->query("SELECT * FROM `FooModelTableUser` WHERE `id` = '1'")
+            ->fetch(\PDO::FETCH_ASSOC)
+    );
+    
+    return $oDTFooModelTableUser
 }
 ~~~
+~~~
+// type: object
+\Cdm\DataType\DTFooModelTableUser::__set_state(array(
+      'id' => 1,
+      'stampChange' => '2023-09-28 10:18:03',
+      'stampCreate' => '2023-09-28 10:16:14',
+      'id_TableGroup' => 1,
+      'email' => 'admin@example.com',
+      'active' => 1,
+      'uuid' => '8b838038-5dd7-11ee-8620-2cf05d0841fd',
+      'uuidtmp' => '8b838839-5dd7-11ee-8620-2cf05d0841fd',
+      'password' => '*******************************************',
+      'nickname' => 'admin',
+      'forename' => 'foo',
+      'lastname' => 'bar',
+))
+~~~
 
-_`SQL` example `fetchRow` on table class_
+_`SQL` examples using `$oPDO` query .. fetchAll_
 ~~~php
-public function getUserByNickname(string $sNickname = '')
+/**
+ * @return array|\Foo\DataType\DTFooModelTableUser[]
+ * @throws \ReflectionException
+ */
+public function getUserObjectsArray()
 {
-    $sSql = "SELECT * FROM `FooModelTableUser` WHERE nickname = '" . $sNickname . "'";
-    $aResult = DB::$oFooModelTableUser->fetchRow($sSql);
-
-    /** @var DTFooModelTableUser[] $aDTFooModelTableUser */
-    $aDTFooModelTableUser = array();
-
-    foreach ($aResult as $aData)
-    {
-        $aDTFooModelTableUser[] = DTFooModelTableUser::create($aData);
-    }
-
-    return $aDTFooModelTableUser;
+    // get result & cast all results to datatype objects
+    $aDTFooModelTableUser = array_map(
+        function($aData){
+            return DTFooModelTableUser::create($aData);
+        },
+        (array) DB::$oPDO
+            ->query("SELECT * FROM `FooModelTableUser` WHERE `active` = '1'")
+            ->fetchAll(\PDO::FETCH_ASSOC)
+    );
+    
+    return $aDTFooModelTableUser
 }
 ~~~
-_`SQL` example `fetchAll`_
-~~~php
-public function getUserByNickname(string $sNickname = '')
-{
-    $sSql = "SELECT * FROM `FooModelTableUser` WHERE nickname = '" . $sNickname . "'";
-    $aResult = DB::$oFooModelTableUser->fetchAll($sSql);
-
-    /** @var DTFooModelTableUser[] $aDTFooModelTableUser */
-    $aDTFooModelTableUser = array();
-
-    foreach ($aResult as $aData)
-    {
-        $aDTFooModelTableUser[] = DTFooModelTableUser::create($aData);
-    }
-
-    return $aDTFooModelTableUser;
-}
+~~~
+// type: array, items: 2
+[
+    0 => [
+    \Cdm\DataType\DTFooModelTableUser::__set_state(array(
+          'id' => 1,
+          'stampChange' => '2023-09-28 10:18:03',
+          'stampCreate' => '2023-09-28 10:16:14',
+          'id_TableGroup' => 1,
+          'email' => 'admin@example.com',
+          'active' => 1,
+          'uuid' => '8b838038-5dd7-11ee-8620-2cf05d0841fd',
+          'uuidtmp' => '8b838839-5dd7-11ee-8620-2cf05d0841fd',
+          'password' => '*******************************************',
+          'nickname' => 'admin',
+          'forename' => 'foo',
+          'lastname' => 'bar',
+    )],
+    1 => [
+    \Cdm\DataType\DTFooModelTableUser::__set_state(array(
+          'id' => 2,
+          'stampChange' => '2023-09-28 10:18:03',
+          'stampCreate' => '2023-09-28 10:16:14',
+          'id_TableGroup' => 1,
+          'email' => 'foo@example.com',
+          'active' => 1,
+          'uuid' => '1b838038-5dd7-11ee-8620-2cf05d0841fd',
+          'uuidtmp' => '2b838839-5dd7-11ee-8620-2cf05d0841fd',
+          'password' => '*******************************************',
+          'nickname' => 'foo',
+          'forename' => 'foo2',
+          'lastname' => 'bar2',
+    )],
+]
 ~~~
 
 ---

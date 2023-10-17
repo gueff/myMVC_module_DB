@@ -6,7 +6,6 @@ use MVC\Config;
 use MVC\Debug;
 use MVC\Error;
 use MVC\MVCTrait\TraitDataType;
-use MVC\Registry;
 
 class DbInit
 {
