@@ -608,7 +608,7 @@ _example return_
 
 #### 4.8. SQL
 
-_`SQL` examples using `$oPDO` query .. fetch_
+_`SQL` example using `$oPDO` query .. fetch_
 ~~~php
 /**
  * @return \Foo\DataType\DTFooModelTableUser
@@ -644,7 +644,7 @@ public function getUserObject()
 ))
 ~~~
 
-_`SQL` examples using `$oPDO` query .. fetchAll_
+_`SQL` example using `$oPDO` query .. fetchAll_
 ~~~php
 /**
  * @return array|\Foo\DataType\DTFooModelTableUser[]
