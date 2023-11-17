@@ -4,6 +4,7 @@
 *.tar.gz
 _generateDataTypes.php
 vendor
+composer.lock
 *.sh
 **/*.sh
 _gitPull.sh
