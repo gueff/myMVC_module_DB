@@ -29,8 +29,8 @@ class Openapi
         (true === empty($sDtClassPrefix)) ? $sDtClassPrefix = 'DT' : false;
         (true === empty($sOpenApiVersion)) ? $sOpenApiVersion = '3.0.1' : false;
 
-        $sDTFolderPre = '\\' . Config::get_MVC_MODULE_CURRENT_NAME() . '\\' . basename(Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR());
-        $sYamlFile = Config::get_MVC_MODULE_CURRENT_DATATYPE_DIR() . '/' . basename($sYamlFileName);
+        $sDTFolderPre = '\\' . Config::get_MVC_MODULE_PRIMARY_NAME() . '\\' . basename(Config::get_MVC_MODULE_PRIMARY_DATATYPE_DIR());
+        $sYamlFile = Config::get_MVC_MODULE_PRIMARY_DATATYPE_DIR() . '/' . basename($sYamlFileName);
         $aClassVar = get_class_vars(get_class($oDB));
         $aTmp = array();
         $aTmp['components']['schemas'];
