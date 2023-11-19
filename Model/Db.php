@@ -307,6 +307,7 @@ class Db
         $aDTConfig = array(
             'dir' => Registry::get('MVC_MODULES_DIR') . '/' . $sModulename . '/DataType/',
             'unlinkDir' => false,
+            'createEvents' => true,
             'class' => array(array(
                 'name' => $sClassName,
                 'file' => $sClassName . '.php',
