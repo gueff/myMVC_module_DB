@@ -477,6 +477,7 @@ class Db
      */
 	protected function synchronizeFields ()
 	{
+        $this->dropIndices();
 		$sSql = "SHOW COLUMNS FROM " . $this->sTableName;
 
 		try
@@ -1414,6 +1415,24 @@ class Db
         }
 
         return $bDelete;
+    }
+
+    /**
+     * drops indices from table
+     * @return void
+     * @throws \ReflectionException
+     */
+    protected function dropIndices()
+    {
+        // drop indeces
+        $aIndex = $this->fetchAll("SHOW INDEXES FROM `" . $this->sTableName . "`;");
+
+        foreach ($aIndex as $aSet)
+        {
+            if ('PRIMARY' === $aSet['Key_name'] || $aSet['Key_name'] === $aSet['Column_name']) {continue;}
+            $sSql = "ALTER TABLE `" . $this->sTableName . "` DROP INDEX `" . $aSet['Key_name'] . "`;";
+            $this->oDbPDO->query($sSql);
+        }
     }
 
     /**
